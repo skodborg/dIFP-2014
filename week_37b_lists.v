@@ -579,7 +579,31 @@ Theorem there_is_only_one_reverse :
       forall xs : list T,
         reverse_1 xs = reverse_2 xs.
 Proof.
-Abort.
+  intro T.
+  intro append.
+  intro S_append.
+  
+  intros reverse1 reverse2.
+  intros S_reverse1 S_reverse2.
+  unfold specification_of_reverse in S_reverse1.
+  destruct (S_reverse1 append) as [H_reverse1_bc H_reverse1_ic].
+  apply S_append.
+  destruct (S_reverse2 append) as [H_reverse2_bc H_reverse2_ic].
+  apply S_append.
+  clear S_reverse1 S_reverse2.
+  
+  intro xs.
+  induction xs as [ | x' xs' IHxs'].
+
+    rewrite -> H_reverse2_bc.
+    apply H_reverse1_bc.
+
+  rewrite -> (H_reverse1_ic x' xs').
+  rewrite -> (H_reverse2_ic x' xs').
+  rewrite -> IHxs'.
+  reflexivity.
+Qed.
+
 (* Replace "Abort." with a proof. *)
 
 (* ***** *)
