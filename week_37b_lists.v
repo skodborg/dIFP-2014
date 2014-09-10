@@ -386,6 +386,61 @@ Qed.
 *)
 
 (* Exercise: write a unit test that validates these properties. *)
+Definition unit_tests_for_append_nil_left_neutral (append : list nat -> list nat -> list nat) :=
+  (equal_list_nat (append nil
+                          nil)
+                  nil)
+  &&
+  (equal_list_nat (append nil
+                          (1 :: nil))
+                  (1 :: nil))
+  &&
+  (equal_list_nat (append nil
+                          (1 :: 2 :: nil))
+                  (1 :: 2 :: nil))
+  .
+
+Definition unit_tests_for_append_nil_right_neutral (append : list nat -> list nat -> list nat) :=
+  (equal_list_nat (append nil
+                          nil)
+                  nil)
+  &&
+  (equal_list_nat (append (1 :: nil)
+                          nil)
+                  (1 :: nil))
+  &&
+  (equal_list_nat (append (1 :: 2 :: nil)
+                          nil)
+                  (1 :: 2 :: nil))
+  .
+
+Definition unit_tests_for_append_associative (append : list nat -> list nat -> list nat) :=
+  (equal_list_nat (append (append nil nil)
+                          nil)
+                  (append nil (append nil nil)))
+  &&
+  (equal_list_nat (append (append (1 :: nil) nil)
+                          nil)
+                  (append (1 :: nil) (append nil nil)))
+  &&
+  (equal_list_nat (append (append (1 :: nil) (2 :: nil))
+                          nil)
+                  (append (1 :: nil) (append (2 :: nil) nil)))
+  &&
+  (equal_list_nat (append (append (1 :: nil) (2 :: nil))
+                          (3 :: nil))
+                  (append (1 :: nil) (append (2 :: nil) (3 :: nil))))
+  .
+
+Definition unit_tests_for_append_length (append : list nat -> list nat -> list nat) :=
+  (length (append nil nil) === 0 + 0)
+  &&
+  (length (append (1 :: nil) nil) === (length (1 :: nil)) + 0)
+  &&
+  (length (append (1 :: nil) (1 :: nil)) === (length (1 :: nil)) + (length (1 :: nil)))
+  &&
+  (length (append (3 :: 2 :: 1 :: nil) (2 :: 1 :: nil)) === (length (3 :: 2 :: 1 :: nil)) + (length (2 :: 1 :: nil)))
+  .
 
 Lemma nil_is_neutral_for_append_on_the_left :
   forall (T : Type)
