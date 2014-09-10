@@ -432,7 +432,7 @@ Definition unit_tests_for_append_associative (append : list nat -> list nat -> l
                   (append (1 :: nil) (append (2 :: nil) (3 :: nil))))
   .
 
-Definition unit_tests_for_append_length (append : list nat -> list nat -> list nat) :=
+Definition unit_tests_for_append_preserves_length (append : list nat -> list nat -> list nat) :=
   (length (append nil nil) === 0 + 0)
   &&
   (length (append (1 :: nil) nil) === (length (1 :: nil)) + 0)
