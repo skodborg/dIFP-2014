@@ -234,7 +234,19 @@ Proposition length_v2_fits_the_specification_of_length :
   forall T : Type,
     specification_of_length T (length_v2 T).
 Proof.
-Abort.
+  intro T.
+  unfold specification_of_length.
+  split.
+
+    apply (unfold_length_acc_base_case T).
+
+  intro x.
+  intro xs.
+  unfold length_v2.
+  rewrite -> (unfold_length_acc_induction_case T x xs 0).
+  rewrite <- (plus_1_r (length_acc T xs 0)).
+  apply (about_length_acc T xs 1).
+Qed.
 (* Replace "Abort." with a proof. *)
 
 (* ********** *)
