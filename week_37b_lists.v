@@ -7,7 +7,7 @@
 (* New tactics:
    - assert (to declare a new hypothesis)
    - clear (to garbage collect the hypotheses).
-*)
+ *)
 
 Require Import unfold_tactic.
 
@@ -15,13 +15,13 @@ Require Import Arith Bool List.
 
 (* The goal of this file is to study lists:
    Infix :: is cons, and nil is the empty list.
-*)
+ *)
 
 Compute 3 :: 2 :: 1 :: nil.
 (*
      = 3 :: 2 :: 1 :: nil
      : list nat
-*)
+ *)
 
 (* ********** *)
 
@@ -43,23 +43,23 @@ Notation "A === B" := (beq_nat A B) (at level 70, right associativity).
 
 Definition unit_tests_for_length_nat (length : list nat -> nat) :=
   (length nil === 0)
-  &&
-  (length (1 :: nil) === 1)
-  &&
-  (length (2 :: 1 :: nil) === 2)
-  &&
-  (length (3 :: 2 :: 1 :: nil) === 3)
-  .
+    &&
+    (length (1 :: nil) === 1)
+    &&
+    (length (2 :: 1 :: nil) === 2)
+    &&
+    (length (3 :: 2 :: 1 :: nil) === 3)
+.
 
 Definition unit_tests_for_length_bool (length : list bool -> nat) :=
   (length nil === 0)
-  &&
-  (length (true :: nil) === 1)
-  &&
-  (length (true :: true :: nil) === 2)
-  &&
-  (length (true :: true :: true :: nil) === 3)
-  .
+    &&
+    (length (true :: nil) === 1)
+    &&
+    (length (true :: true :: nil) === 2)
+    &&
+    (length (true :: true :: true :: nil) === 3)
+.
 
 Definition specification_of_length (T : Type) (length : list T -> nat) :=
   (length nil = 0)
@@ -109,13 +109,13 @@ Compute unit_tests_for_length_nat (length_v1 nat).
 (*
      = true
      : bool
-*)
+ *)
 
 Compute unit_tests_for_length_bool (length_v1 bool).
 (*
      = true
      : bool
-*)
+ *)
 
 (* The canonical unfold lemmas: *)
 
@@ -169,13 +169,13 @@ Compute unit_tests_for_length_nat (length_v2 nat).
 (*
      = true
      : bool
-*)
+ *)
 
 Compute unit_tests_for_length_bool (length_v2 bool).
 (*
      = true
      : bool
-*)
+ *)
 
 (* The canonical unfold lemmas: *)
 
@@ -212,11 +212,11 @@ Proof.
   intro xs.
   induction xs as [ | x' xs' IHxs'].
 
-    intro a.
-    rewrite -> (unfold_length_acc_base_case T a).
-    rewrite -> (unfold_length_acc_base_case T 0).
-    rewrite (plus_0_l a).
-    reflexivity.
+  intro a.
+  rewrite -> (unfold_length_acc_base_case T a).
+  rewrite -> (unfold_length_acc_base_case T 0).
+  rewrite (plus_0_l a).
+  reflexivity.
 
   intro a.
   rewrite -> (unfold_length_acc_induction_case T x' xs' a).
@@ -238,7 +238,7 @@ Proof.
   unfold specification_of_length.
   split.
 
-    apply (unfold_length_acc_base_case T).
+  apply (unfold_length_acc_base_case T).
 
   intro x.
   intro xs.
@@ -273,19 +273,19 @@ Definition unit_tests_for_append_nat (append : list nat -> list nat -> list nat)
   (equal_list_nat (append nil
                           nil)
                   nil)
-  &&
-  (equal_list_nat (append (1 :: nil)
-                          nil)
-                  (1 :: nil))
-  &&
-  (equal_list_nat (append nil
-                          (1 :: nil))
-                  (1 :: nil))
-  &&
-  (equal_list_nat (append (1 :: 2 :: nil)
-                          (3 :: 4 :: 5 :: nil))
-                  (1 :: 2 :: 3 :: 4 :: 5 :: nil))
-  .
+    &&
+    (equal_list_nat (append (1 :: nil)
+                            nil)
+                    (1 :: nil))
+    &&
+    (equal_list_nat (append nil
+                            (1 :: nil))
+                    (1 :: nil))
+    &&
+    (equal_list_nat (append (1 :: 2 :: nil)
+                            (3 :: 4 :: 5 :: nil))
+                    (1 :: 2 :: 3 :: 4 :: 5 :: nil))
+.
 
 Definition specification_of_append (T : Type) (append : list T -> list T -> list T) :=
   (forall ys : list T,
@@ -313,14 +313,15 @@ Proof.
   intros xs ys.
   induction xs as [ | x' xs' IHxs'].
 
-    rewrite -> (H_append1_bc ys).
-    rewrite -> (H_append2_bc ys).
-    reflexivity.
+  rewrite -> (H_append1_bc ys).
+  rewrite -> (H_append2_bc ys).
+  reflexivity.
 
   rewrite -> (H_append1_ic x' xs' ys).
   rewrite -> IHxs'.
   rewrite <- (H_append2_ic x' xs' ys).
   reflexivity.
+Qed.
 
 (* Replace "Abort." with a proof. *)
 
@@ -363,9 +364,9 @@ Proof.
   unfold specification_of_append.
   split.
 
-    intro ys.
-    unfold append_v1.
-    apply (unfold_append_v1_base_case T ys).
+  intro ys.
+  unfold append_v1.
+  apply (unfold_append_v1_base_case T ys).
 
   intros x xs ys.
   unfold append_v1.
@@ -383,22 +384,22 @@ Qed.
        append (append xs ys) zs = append xs (append ys zs)
      for all xs ys,
        length (append xs ys) = (length xs) + (length ys)
-*)
+ *)
 
 (* Exercise: write a unit test that validates these properties. *)
 Definition unit_tests_for_append_nil_left_neutral (append : list nat -> list nat -> list nat) :=
   (equal_list_nat (append nil
                           nil)
                   nil)
-  &&
-  (equal_list_nat (append nil
-                          (1 :: nil))
-                  (1 :: nil))
-  &&
-  (equal_list_nat (append nil
-                          (1 :: 2 :: nil))
-                  (1 :: 2 :: nil))
-  .
+    &&
+    (equal_list_nat (append nil
+                            (1 :: nil))
+                    (1 :: nil))
+    &&
+    (equal_list_nat (append nil
+                            (1 :: 2 :: nil))
+                    (1 :: 2 :: nil))
+.
 
 Compute unit_tests_for_append_nil_left_neutral (append_v1 nat).
 
@@ -406,49 +407,49 @@ Definition unit_tests_for_append_nil_right_neutral (append : list nat -> list na
   (equal_list_nat (append nil
                           nil)
                   nil)
-  &&
-  (equal_list_nat (append (1 :: nil)
-                          nil)
-                  (1 :: nil))
-  &&
-  (equal_list_nat (append (1 :: 2 :: nil)
-                          nil)
-                  (1 :: 2 :: nil))
-  .
+    &&
+    (equal_list_nat (append (1 :: nil)
+                            nil)
+                    (1 :: nil))
+    &&
+    (equal_list_nat (append (1 :: 2 :: nil)
+                            nil)
+                    (1 :: 2 :: nil))
+.
 
-  Compute unit_tests_for_append_nil_right_neutral (append_v1 nat).
+Compute unit_tests_for_append_nil_right_neutral (append_v1 nat).
 
 Definition unit_tests_for_append_associative (append : list nat -> list nat -> list nat) :=
   (equal_list_nat (append (append nil nil)
                           nil)
                   (append nil (append nil nil)))
-  &&
-  (equal_list_nat (append (append (1 :: nil) nil)
-                          nil)
-                  (append (1 :: nil) (append nil nil)))
-  &&
-  (equal_list_nat (append (append (1 :: nil) (2 :: nil))
-                          nil)
-                  (append (1 :: nil) (append (2 :: nil) nil)))
-  &&
-  (equal_list_nat (append (append (1 :: nil) (2 :: nil))
-                          (3 :: nil))
-                  (append (1 :: nil) (append (2 :: nil) (3 :: nil))))
-  .
+    &&
+    (equal_list_nat (append (append (1 :: nil) nil)
+                            nil)
+                    (append (1 :: nil) (append nil nil)))
+    &&
+    (equal_list_nat (append (append (1 :: nil) (2 :: nil))
+                            nil)
+                    (append (1 :: nil) (append (2 :: nil) nil)))
+    &&
+    (equal_list_nat (append (append (1 :: nil) (2 :: nil))
+                            (3 :: nil))
+                    (append (1 :: nil) (append (2 :: nil) (3 :: nil))))
+.
 
-  Compute unit_tests_for_append_associative (append_v1 nat).
-  
+Compute unit_tests_for_append_associative (append_v1 nat).
+
 Definition unit_tests_for_append_preserves_length (append : list nat -> list nat -> list nat) :=
   (length (append nil nil) === 0 + 0)
-  &&
-  (length (append (1 :: nil) nil) === (length (1 :: nil)) + 0)
-  &&
-  (length (append (1 :: nil) (1 :: nil)) === (length (1 :: nil)) + (length (1 :: nil)))
-  &&
-  (length (append (3 :: 2 :: 1 :: nil) (2 :: 1 :: nil)) === (length (3 :: 2 :: 1 :: nil)) + (length (2 :: 1 :: nil)))
-  .
+    &&
+    (length (append (1 :: nil) nil) === (length (1 :: nil)) + 0)
+    &&
+    (length (append (1 :: nil) (1 :: nil)) === (length (1 :: nil)) + (length (1 :: nil)))
+    &&
+    (length (append (3 :: 2 :: 1 :: nil) (2 :: 1 :: nil)) === (length (3 :: 2 :: 1 :: nil)) + (length (2 :: 1 :: nil)))
+.
 
-  Compute unit_tests_for_append_preserves_length (append_v1 nat).
+Compute unit_tests_for_append_preserves_length (append_v1 nat).
 
 Lemma nil_is_neutral_for_append_on_the_left :
   forall (T : Type)
@@ -558,16 +559,16 @@ Qed.
 Definition unit_tests_for_reverse_nat (reverse : list nat -> list nat) :=
   (equal_list_nat (reverse nil)
                   nil)
-  &&
-  (equal_list_nat (reverse (1 :: nil))
-                  (1 :: nil))
-  &&
-  (equal_list_nat (reverse (1 :: 2 :: nil))
-                  (2 :: 1 :: nil))
-  &&
-  (equal_list_nat (reverse (1 :: 2 :: 3 :: nil))
-                  (3 :: 2 :: 1 :: nil))
-  .
+    &&
+    (equal_list_nat (reverse (1 :: nil))
+                    (1 :: nil))
+    &&
+    (equal_list_nat (reverse (1 :: 2 :: nil))
+                    (2 :: 1 :: nil))
+    &&
+    (equal_list_nat (reverse (1 :: 2 :: 3 :: nil))
+                    (3 :: 2 :: 1 :: nil))
+.
 
 Definition specification_of_reverse (T : Type) (reverse : list T -> list T) :=
   forall (append : list T -> list T -> list T),
@@ -603,8 +604,8 @@ Proof.
   intro xs.
   induction xs as [ | x' xs' IHxs'].
 
-    rewrite -> H_reverse2_bc.
-    apply H_reverse1_bc.
+  rewrite -> H_reverse2_bc.
+  apply H_reverse1_bc.
 
   rewrite -> (H_reverse1_ic x' xs').
   rewrite -> (H_reverse2_ic x' xs').
@@ -656,229 +657,260 @@ Proposition reverse_v1_fits_the_specification_of_reverse :
   forall T : Type,
     specification_of_reverse T (reverse_v1 T).
 Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  intro T.
+  unfold specification_of_reverse.
+  intro append.
+  intro S_append.
+  split.
 
-(* ***** *)
+  apply (unfold_reverse_ds_base_case T).
 
-(* A second implementation of reverse, with an accumulator : *)
+  unfold reverse_v1.
+  intros x xs.
+  rewrite -> (unfold_reverse_ds_induction_case T x xs).
+  Check (there_is_only_one_append
+           T
+           append
+           (append_v1 T)
+           S_append
+           (append_v1_fits_the_specification_of_append T)
+           (reverse_ds T xs)
+           (x :: nil)
+        ).
+  symmetry.
+  apply (there_is_only_one_append
+           T
+           append
+           (append_v1 T)
+           S_append
+           (append_v1_fits_the_specification_of_append T)
+           (reverse_ds T xs)
+           (x :: nil)
+        ).
+Qed.
 
-Fixpoint reverse_acc (T : Type) (xs a : list T) : list T :=
-  match xs with
-    | nil => a
-    | x :: xs' => reverse_acc T xs' (x :: a)
-  end.
+    (* Replace "Abort." with a proof. *)
 
-Definition reverse_v2 (T : Type) (xs : list T) :=
-  reverse_acc T xs nil.
+    (* ***** *)
 
-Compute unit_tests_for_reverse_nat (reverse_v2 nat).
+    (* A second implementation of reverse, with an accumulator : *)
 
-(* A useful lemma (Eureka): *)
+    Fixpoint reverse_acc (T : Type) (xs a : list T) : list T :=
+    match xs with
+      | nil => a
+      | x :: xs' => reverse_acc T xs' (x :: a)
+    end.
 
-Lemma about_reverse_acc :
-  forall (T : Type)
-         (append : list T -> list T -> list T),
-    specification_of_append T append ->
-    forall xs a : list T,
-      reverse_acc T xs a = append (reverse_acc T xs nil) a.
-Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  Definition reverse_v2 (T : Type) (xs : list T) :=
+    reverse_acc T xs nil.
 
-Proposition reverse_v2_fits_the_specification_of_reverse :
-  forall T : Type,
-    specification_of_reverse T (reverse_v2 T).
-Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  Compute unit_tests_for_reverse_nat (reverse_v2 nat).
 
-(* ********** *)
+  (* A useful lemma (Eureka): *)
 
-(* Properties:
+  Lemma about_reverse_acc :
+    forall (T : Type)
+           (append : list T -> list T -> list T),
+      specification_of_append T append ->
+      forall xs a : list T,
+        reverse_acc T xs a = append (reverse_acc T xs nil) a.
+  Proof.
+  Abort.
+  (* Replace "Abort." with a proof. *)
+
+  Proposition reverse_v2_fits_the_specification_of_reverse :
+    forall T : Type,
+      specification_of_reverse T (reverse_v2 T).
+  Proof.
+  Abort.
+  (* Replace "Abort." with a proof. *)
+
+  (* ********** *)
+
+  (* Properties:
      for all xs,
        length xs = length (reverse xs)
      forall xs ys,
        reverse (append xs ys) = append (reverse ys) (reverse xs)
      forall xs,
        reverse (reverse xs) = xs
-*)
+   *)
 
-(* Exercise: write a unit test that validates these properties. *)
+  (* Exercise: write a unit test that validates these properties. *)
 
-Proposition reverse_preserves_length :
-  forall (T : Type)
-         (length : list T -> nat)
-         (append : list T -> list T -> list T)
-         (reverse : list T -> list T),
-    specification_of_length T length ->
-    specification_of_append T append ->
-    specification_of_reverse T reverse ->
-    forall xs : list T,
-      length xs = length (reverse xs).
-Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  Proposition reverse_preserves_length :
+    forall (T : Type)
+           (length : list T -> nat)
+           (append : list T -> list T -> list T)
+           (reverse : list T -> list T),
+      specification_of_length T length ->
+      specification_of_append T append ->
+      specification_of_reverse T reverse ->
+      forall xs : list T,
+        length xs = length (reverse xs).
+  Proof.
+  Abort.
+  (* Replace "Abort." with a proof. *)
 
-Proposition reverse_preserves_append_sort_of :
-  forall (T : Type)
-         (append : list T -> list T -> list T)
-         (reverse : list T -> list T),
-    specification_of_append T append ->
-    specification_of_reverse T reverse ->
-    forall xs ys : list T,
-      reverse (append xs ys) = append (reverse ys) (reverse xs).
-Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  Proposition reverse_preserves_append_sort_of :
+    forall (T : Type)
+           (append : list T -> list T -> list T)
+           (reverse : list T -> list T),
+      specification_of_append T append ->
+      specification_of_reverse T reverse ->
+      forall xs ys : list T,
+        reverse (append xs ys) = append (reverse ys) (reverse xs).
+  Proof.
+  Abort.
+  (* Replace "Abort." with a proof. *)
 
-Proposition reverse_is_involutive :
-  forall (T : Type)
-         (append : list T -> list T -> list T)
-         (reverse : list T -> list T),
-    specification_of_append T append ->
-    specification_of_reverse T reverse ->
-    forall xs : list T,
-      reverse (reverse xs) = xs.
-Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  Proposition reverse_is_involutive :
+    forall (T : Type)
+           (append : list T -> list T -> list T)
+           (reverse : list T -> list T),
+      specification_of_append T append ->
+      specification_of_reverse T reverse ->
+      forall xs : list T,
+        reverse (reverse xs) = xs.
+  Proof.
+  Abort.
+  (* Replace "Abort." with a proof. *)
 
-(* ********** *)
+  (* ********** *)
 
-(* Mapping a function over the elements of a list: *)
+  (* Mapping a function over the elements of a list: *)
 
-Definition unit_tests_for_map_nat (map : (nat -> nat) -> list nat -> list nat) :=
-  (equal_list_nat (map (fun n => n)
-                       nil)
-                  nil)
-  &&
-  (equal_list_nat (map (fun n => n)
-                       (1 :: nil))
-                  (1 :: nil))
-  &&
-  (equal_list_nat (map (fun n => n)
-                       (1 :: 2 :: 3 :: nil))
-                  (1 :: 2 :: 3 :: nil))
-  &&
-  (equal_list_nat (map (fun n => S n)
-                       nil)
-                  nil)
-  &&
-  (equal_list_nat (map (fun n => S n)
-                       (1 :: nil))
-                  (2 :: nil))
-  &&
-  (equal_list_nat (map (fun n => S n)
-                       (1 :: 2 :: 3 :: nil))
-                  (2 :: 3 :: 4 :: nil))
+  Definition unit_tests_for_map_nat (map : (nat -> nat) -> list nat -> list nat) :=
+    (equal_list_nat (map (fun n => n)
+                         nil)
+                    nil)
+      &&
+      (equal_list_nat (map (fun n => n)
+                           (1 :: nil))
+                      (1 :: nil))
+      &&
+      (equal_list_nat (map (fun n => n)
+                           (1 :: 2 :: 3 :: nil))
+                      (1 :: 2 :: 3 :: nil))
+      &&
+      (equal_list_nat (map (fun n => S n)
+                           nil)
+                      nil)
+      &&
+      (equal_list_nat (map (fun n => S n)
+                           (1 :: nil))
+                      (2 :: nil))
+      &&
+      (equal_list_nat (map (fun n => S n)
+                           (1 :: 2 :: 3 :: nil))
+                      (2 :: 3 :: 4 :: nil))
   .
 
-(* Exercise: add more tests. *)
+  (* Exercise: add more tests. *)
 
-Definition specification_of_map (T1 T2 : Type) (map : (T1 -> T2) -> list T1 -> list T2) :=
-  (forall f : T1 -> T2,
-     map f nil = nil)
-  /\
-  (forall (f : T1 -> T2) (x : T1) (xs' : list T1),
-     map f (x :: xs') = (f x) :: (map f xs')).
+  Definition specification_of_map (T1 T2 : Type) (map : (T1 -> T2) -> list T1 -> list T2) :=
+    (forall f : T1 -> T2,
+       map f nil = nil)
+    /\
+    (forall (f : T1 -> T2) (x : T1) (xs' : list T1),
+       map f (x :: xs') = (f x) :: (map f xs')).
 
-Theorem there_is_only_one_map :
-  forall (T1 T2 : Type)
-         (map_1 map_2 : (T1 -> T2) -> list T1 -> list T2),
-    specification_of_map T1 T2 map_1 ->
-    specification_of_map T1 T2 map_2 ->
-    forall (f : T1 -> T2)
-           (xs : list T1),
-      map_1 f xs = map_2 f xs.
-Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  Theorem there_is_only_one_map :
+    forall (T1 T2 : Type)
+           (map_1 map_2 : (T1 -> T2) -> list T1 -> list T2),
+      specification_of_map T1 T2 map_1 ->
+      specification_of_map T1 T2 map_2 ->
+      forall (f : T1 -> T2)
+             (xs : list T1),
+        map_1 f xs = map_2 f xs.
+  Proof.
+  Abort.
+  (* Replace "Abort." with a proof. *)
 
-(* ***** *)
+  (* ***** *)
 
-(* An implementation of map: *)
+  (* An implementation of map: *)
 
-Fixpoint map_ds (T1 T2 : Type) (f : T1 -> T2) (xs : list T1) : list T2 :=
-  match xs with
-    | nil => nil
-    | x :: xs' => (f x) :: (map_ds T1 T2 f xs')
-  end.
+  Fixpoint map_ds (T1 T2 : Type) (f : T1 -> T2) (xs : list T1) : list T2 :=
+    match xs with
+      | nil => nil
+      | x :: xs' => (f x) :: (map_ds T1 T2 f xs')
+    end.
 
-Definition map_v1 (T1 T2 : Type) (f : T1 -> T2) (xs : list T1) : list T2 :=
-  map_ds T1 T2 f xs.
+  Definition map_v1 (T1 T2 : Type) (f : T1 -> T2) (xs : list T1) : list T2 :=
+    map_ds T1 T2 f xs.
 
-Compute unit_tests_for_map_nat (map_v1 nat nat).
+  Compute unit_tests_for_map_nat (map_v1 nat nat).
 
-Proposition map_v1_fits_the_specification_of_map :
-  forall T1 T2 : Type,
-    specification_of_map T1 T2 (map_v1 T1 T2).
-Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  Proposition map_v1_fits_the_specification_of_map :
+    forall T1 T2 : Type,
+      specification_of_map T1 T2 (map_v1 T1 T2).
+  Proof.
+  Abort.
+  (* Replace "Abort." with a proof. *)
 
-(* ********** *)
+  (* ********** *)
 
-(* Properties:
+  (* Properties:
      for all f1 f2 xs,
        map f2 (map f1 xs) = map (fun x => f2 (f1 x)) xs
      for all f xs ys,
         map f (append xs ys) = append (map f xs) (map f ys)
      for all f xs,
        map f (reverse xs) = reverse (map f xs)
-*)
+   *)
 
-(* Exercise: write a unit test that validates these properties. *)
+  (* Exercise: write a unit test that validates these properties. *)
 
-Proposition listlessness_of_map :
-  forall (T1 T2 T3 : Type)
-         (map12 : (T1 -> T2) -> list T1 -> list T2)
-         (map23 : (T2 -> T3) -> list T2 -> list T3)
-         (map13 : (T1 -> T3) -> list T1 -> list T3),
-    specification_of_map T1 T2 map12 ->
-    specification_of_map T2 T3 map23 ->
-    specification_of_map T1 T3 map13 ->
-    forall (f1 : T1 -> T2)
-           (f2 : T2 -> T3)
-           (xs : list T1),
-      map23 f2 (map12 f1 xs) = map13 (fun x => f2 (f1 x)) xs.
-Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  Proposition listlessness_of_map :
+    forall (T1 T2 T3 : Type)
+           (map12 : (T1 -> T2) -> list T1 -> list T2)
+           (map23 : (T2 -> T3) -> list T2 -> list T3)
+           (map13 : (T1 -> T3) -> list T1 -> list T3),
+      specification_of_map T1 T2 map12 ->
+      specification_of_map T2 T3 map23 ->
+      specification_of_map T1 T3 map13 ->
+      forall (f1 : T1 -> T2)
+             (f2 : T2 -> T3)
+             (xs : list T1),
+        map23 f2 (map12 f1 xs) = map13 (fun x => f2 (f1 x)) xs.
+  Proof.
+  Abort.
+  (* Replace "Abort." with a proof. *)
 
-Proposition append_preserves_map :
-  forall (T1 T2 : Type)
-         (map : (T1 -> T2) -> list T1 -> list T2)
-         (append_1 : list T1 -> list T1 -> list T1)
-         (append_2 : list T2 -> list T2 -> list T2),
-    specification_of_map T1 T2 map ->
-    specification_of_append T1 append_1 ->
-    specification_of_append T2 append_2 ->
-    forall (f : T1 -> T2) (xs ys : list T1),
-       map f (append_1 xs ys) = append_2 (map f xs) (map f ys).
-Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  Proposition append_preserves_map :
+    forall (T1 T2 : Type)
+           (map : (T1 -> T2) -> list T1 -> list T2)
+           (append_1 : list T1 -> list T1 -> list T1)
+           (append_2 : list T2 -> list T2 -> list T2),
+      specification_of_map T1 T2 map ->
+      specification_of_append T1 append_1 ->
+      specification_of_append T2 append_2 ->
+      forall (f : T1 -> T2) (xs ys : list T1),
+        map f (append_1 xs ys) = append_2 (map f xs) (map f ys).
+  Proof.
+  Abort.
+  (* Replace "Abort." with a proof. *)
 
-Proposition reverse_preserves_map_sort_of :
-  forall (T1 T2 : Type)
-         (append_1 : list T1 -> list T1 -> list T1)
-         (append_2 : list T2 -> list T2 -> list T2)
-         (reverse_1 : list T1 -> list T1)
-         (reverse_2 : list T2 -> list T2)
-         (map : (T1 -> T2) -> list T1 -> list T2),
-    specification_of_append T1 append_1 ->
-    specification_of_append T2 append_2 ->
-    specification_of_reverse T1 reverse_1 ->
-    specification_of_reverse T2 reverse_2 ->
-    specification_of_map T1 T2 map ->
-    forall (f : T1 -> T2)
-           (xs : list T1),
-      map f (reverse_1 xs) = reverse_2 (map f xs).
-Proof.
-Abort.
-(* Replace "Abort." with a proof. *)
+  Proposition reverse_preserves_map_sort_of :
+    forall (T1 T2 : Type)
+           (append_1 : list T1 -> list T1 -> list T1)
+           (append_2 : list T2 -> list T2 -> list T2)
+           (reverse_1 : list T1 -> list T1)
+           (reverse_2 : list T2 -> list T2)
+           (map : (T1 -> T2) -> list T1 -> list T2),
+      specification_of_append T1 append_1 ->
+      specification_of_append T2 append_2 ->
+      specification_of_reverse T1 reverse_1 ->
+      specification_of_reverse T2 reverse_2 ->
+      specification_of_map T1 T2 map ->
+      forall (f : T1 -> T2)
+             (xs : list T1),
+        map f (reverse_1 xs) = reverse_2 (map f xs).
+  Proof.
+  Abort.
+  (* Replace "Abort." with a proof. *)
 
-(* ********** *)
+  (* ********** *)
 
-(* end of week_37b_lists.v *)
+  (* end of week_37b_lists.v *)
