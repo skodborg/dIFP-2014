@@ -359,7 +359,19 @@ Proposition append_v1_fits_the_specification_of_append :
   forall T : Type,
     specification_of_append T (append_v1 T).
 Proof.
-Abort.
+  intro T.
+  unfold specification_of_append.
+  split.
+
+    intro ys.
+    unfold append_v1.
+    apply (unfold_append_v1_base_case T ys).
+
+  intros x xs ys.
+  unfold append_v1.
+  apply (unfold_append_v1_induction_case T x xs ys).
+Qed.
+
 (* Replace "Abort." with a proof. *)
 
 (* ********** *)
