@@ -301,7 +301,27 @@ Theorem there_is_only_one_append :
     forall xs ys : list T,
       append_1 xs ys = append_2 xs ys.
 Proof.
-Abort.
+  intro T.
+  intros append1 append2.
+  intros S_append1 S_append2.
+
+  unfold specification_of_append in S_append1.
+  destruct S_append1 as [H_append1_bc H_append1_ic].
+  unfold specification_of_append in S_append2.
+  destruct S_append2 as [H_append2_bc H_append2_ic].
+
+  intros xs ys.
+  induction xs as [ | x' xs' IHxs'].
+
+    rewrite -> (H_append1_bc ys).
+    rewrite -> (H_append2_bc ys).
+    reflexivity.
+
+  rewrite -> (H_append1_ic x' xs' ys).
+  rewrite -> IHxs'.
+  rewrite <- (H_append2_ic x' xs' ys).
+  reflexivity.
+
 (* Replace "Abort." with a proof. *)
 
 Fixpoint append_ds (T : Type) (xs ys : list T) : list T :=
