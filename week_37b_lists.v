@@ -400,6 +400,8 @@ Definition unit_tests_for_append_nil_left_neutral (append : list nat -> list nat
                   (1 :: 2 :: nil))
   .
 
+Compute unit_tests_for_append_nil_left_neutral (append_v1 nat).
+
 Definition unit_tests_for_append_nil_right_neutral (append : list nat -> list nat -> list nat) :=
   (equal_list_nat (append nil
                           nil)
@@ -413,6 +415,8 @@ Definition unit_tests_for_append_nil_right_neutral (append : list nat -> list na
                           nil)
                   (1 :: 2 :: nil))
   .
+
+  Compute unit_tests_for_append_nil_right_neutral (append_v1 nat).
 
 Definition unit_tests_for_append_associative (append : list nat -> list nat -> list nat) :=
   (equal_list_nat (append (append nil nil)
@@ -432,6 +436,8 @@ Definition unit_tests_for_append_associative (append : list nat -> list nat -> l
                   (append (1 :: nil) (append (2 :: nil) (3 :: nil))))
   .
 
+  Compute unit_tests_for_append_associative (append_v1 nat).
+  
 Definition unit_tests_for_append_preserves_length (append : list nat -> list nat -> list nat) :=
   (length (append nil nil) === 0 + 0)
   &&
@@ -441,6 +447,8 @@ Definition unit_tests_for_append_preserves_length (append : list nat -> list nat
   &&
   (length (append (3 :: 2 :: 1 :: nil) (2 :: 1 :: nil)) === (length (3 :: 2 :: 1 :: nil)) + (length (2 :: 1 :: nil)))
   .
+
+  Compute unit_tests_for_append_preserves_length (append_v1 nat).
 
 Lemma nil_is_neutral_for_append_on_the_left :
   forall (T : Type)
