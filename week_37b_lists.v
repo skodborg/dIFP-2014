@@ -1081,7 +1081,23 @@ Proposition append_preserves_map :
     forall (f : T1 -> T2) (xs ys : list T1),
       map f (append_1 xs ys) = append_2 (map f xs) (map f ys).
 Proof.
-Abort.
+  intros T1 T2 map append_1 append_2.
+  intros [H_map_bc H_map_ic] [H_append_1_bc H_append_1_ic] [H_append_2_bc H_append_2_ic].
+  induction xs as [ | x' xs' IHxs'].
+    intro ys.
+    rewrite -> (H_append_1_bc ys).
+    rewrite -> (H_map_bc f).
+    rewrite -> (H_append_2_bc (map f ys)).
+    reflexivity.
+
+  intro ys.
+  rewrite -> (H_append_1_ic x' xs' ys).
+  rewrite -> (H_map_ic f x' (append_1 xs' ys)).
+  rewrite -> (IHxs' ys).
+  rewrite -> (H_map_ic f x' xs').
+  rewrite -> (H_append_2_ic (f x') (map f xs') (map f ys)).
+  reflexivity.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 Proposition reverse_preserves_map_sort_of :
