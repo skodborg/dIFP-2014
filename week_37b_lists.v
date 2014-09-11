@@ -957,7 +957,18 @@ Theorem there_is_only_one_map :
            (xs : list T1),
       map_1 f xs = map_2 f xs.
 Proof.
-Abort.
+  intros T1 T2 map_1 map_2.
+  intros [H_map_1_bc H_map_1_ic] [H_map_2_bc H_map_2_ic].
+  intros f xs.
+  induction xs as [ | x' xs' IHxs'].
+    rewrite -> (H_map_2_bc f).
+    apply H_map_1_bc.
+
+  rewrite -> (H_map_1_ic f x' xs').
+  rewrite -> (H_map_2_ic f x' xs').
+  rewrite -> IHxs'.
+  reflexivity.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 (* ***** *)
