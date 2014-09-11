@@ -880,8 +880,33 @@ Proposition reverse_is_involutive :
     specification_of_reverse T reverse ->
     forall xs : list T,
       reverse (reverse xs) = xs.
-Proof.   
-Abort.
+Proof.
+  intros T append reverse S_append S_reverse.
+  induction xs as [ | x' xs' IHxs'].
+    unfold specification_of_reverse in S_reverse.
+    destruct (S_reverse append S_append) as [H_reverse_bc _].
+    clear S_reverse.
+    rewrite -> H_reverse_bc.
+    apply H_reverse_bc.
+
+  assert (S_reverse_snapshot := S_reverse).
+  unfold specification_of_reverse in S_reverse_snapshot.
+  destruct (S_reverse_snapshot append S_append) as [H_reverse_bc H_reverse_ic].
+  clear S_reverse_snapshot.
+  rewrite -> (H_reverse_ic x' xs').
+  Check reverse_preserves_append_sort_of.
+  rewrite -> (reverse_preserves_append_sort_of T append reverse S_append S_reverse (reverse xs') (x' :: nil)).
+  rewrite -> IHxs'.
+  rewrite -> (H_reverse_ic x' nil).
+  Check append_is_associative.
+  rewrite -> H_reverse_bc.
+  unfold specification_of_append in S_append.
+  destruct S_append as [H_append_bc H_append_ic].
+  rewrite -> (H_append_bc  (x' :: nil)).
+  rewrite -> (H_append_ic x' nil xs').
+  rewrite -> (H_append_bc xs').
+  reflexivity.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 (* ********** *)
