@@ -751,7 +751,7 @@ Proof.
   unfold specification_of_append in S_append.
   destruct S_append as [H_append_bc H_append_ic].
   rewrite -> (H_append_ic x' nil a).
-  rewrite (H_append_bc a).
+  rewrite -> (H_append_bc a).
   reflexivity.
 Qed.
 
@@ -845,7 +845,31 @@ Proposition reverse_preserves_append_sort_of :
     forall xs ys : list T,
       reverse (append xs ys) = append (reverse ys) (reverse xs).
 Proof.
-Abort.
+intros T append reverse S_append S_reverse.
+  induction xs as [ | x' xs' IHxs'].
+    unfold specification_of_reverse in S_reverse.
+    destruct (S_reverse append S_append) as [H_reverse_bc _].
+    clear S_reverse.
+    rewrite -> H_reverse_bc.
+    intro ys.
+    rewrite -> (nil_is_neutral_for_append_on_the_left T append S_append ys).
+    rewrite -> (nil_is_neutral_for_append_on_the_right T append S_append (reverse ys)).
+    reflexivity.
+
+  unfold specification_of_reverse in S_reverse.
+  destruct (S_reverse append S_append) as [H_reverse_bc H_reverse_ic].
+  clear S_reverse.
+  rewrite -> (H_reverse_ic x' xs').
+  assert (S_append_snapshot := S_append).
+  unfold specification_of_append in S_append_snapshot.
+  destruct S_append_snapshot as [H_append_bc H_append_ic].
+  intro ys.
+  rewrite -> (H_append_ic x' xs' ys).
+  rewrite <- (append_is_associative T append S_append (reverse ys) (reverse xs') (x' :: nil)).
+  rewrite <- (IHxs' ys).
+  rewrite <- (H_reverse_ic x' (append xs' ys)).
+  reflexivity.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 Proposition reverse_is_involutive :
@@ -856,7 +880,7 @@ Proposition reverse_is_involutive :
     specification_of_reverse T reverse ->
     forall xs : list T,
       reverse (reverse xs) = xs.
-Proof.
+Proof.   
 Abort.
 (* Replace "Abort." with a proof. *)
 
