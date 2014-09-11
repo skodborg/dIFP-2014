@@ -1116,7 +1116,41 @@ Proposition reverse_preserves_map_sort_of :
            (xs : list T1),
       map f (reverse_1 xs) = reverse_2 (map f xs).
 Proof.
-Abort.
+  intros T1 T2 append_1 append_2 reverse_1 reverse_2 map.
+  intros S_append_1 S_append_2.
+  intros S_reverse_1 S_reverse_2 S_map. 
+  assert (S_map_snapshot := S_map).
+  induction xs as [ | x' xs' IHxs'].
+    unfold specification_of_reverse in S_map.
+    destruct S_map as [H_map_bc H_map_ic].
+    rewrite -> (H_map_bc f).
+    unfold specification_of_reverse in S_reverse_1.
+    destruct (S_reverse_1 append_1 S_append_1) as [H_reverse_1_bc H_reverse_1_ic].
+    unfold specification_of_reverse in S_reverse_2.
+    destruct (S_reverse_2 append_2 S_append_2) as [H_reverse_2_bc H_reverse_2_ic].
+    clear S_reverse_1 S_reverse_2.
+    rewrite -> H_reverse_1_bc.
+    rewrite -> H_reverse_2_bc.
+    apply H_map_bc.
+
+  unfold specification_of_reverse in S_reverse_1.
+  destruct (S_reverse_1 append_1 S_append_1) as [_ H_reverse_1_ic].
+  unfold specification_of_reverse in S_reverse_2.
+  destruct (S_reverse_2 append_2 S_append_2) as [_ H_reverse_2_ic].
+  clear S_reverse_1 S_reverse_2.
+  unfold specification_of_reverse in S_map.
+  destruct S_map as [H_map_bc H_map_ic].
+
+  rewrite -> (H_map_ic f x' xs').
+  rewrite -> (H_reverse_2_ic (f x') (map f xs')).
+  rewrite <- IHxs'.
+  rewrite -> (H_reverse_1_ic x' xs').
+  Check append_preserves_map.
+  rewrite -> (append_preserves_map T1 T2 map append_1 append_2 S_map_snapshot S_append_1 S_append_2 f (reverse_1 xs') (x' :: nil)).
+  rewrite -> (H_map_ic f x' nil).
+  rewrite -> H_map_bc.
+  reflexivity.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 (* ********** *)
