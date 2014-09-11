@@ -706,6 +706,21 @@ Definition reverse_v2 (T : Type) (xs : list T) :=
 
 Compute unit_tests_for_reverse_nat (reverse_v2 nat).
 
+
+Lemma unfold_reverse_acc_base_case :
+  forall (T : Type) (xs a : list T),
+    reverse_acc T nil a = a.
+Proof.
+  unfold_tactic reverse_acc.
+Qed.  
+
+Lemma unfold_reverse_acc_induction_case :
+  forall (T : Type) (x : T) (xs a : list T),
+    reverse_acc T (x :: xs) a = reverse_acc T xs (x :: a).
+Proof.
+  unfold_tactic reverse_acc.
+Qed.
+
 (* A useful lemma (Eureka): *)
 
 Lemma about_reverse_acc :
@@ -715,7 +730,31 @@ Lemma about_reverse_acc :
     forall xs a : list T,
       reverse_acc T xs a = append (reverse_acc T xs nil) a.
 Proof.
-Abort.
+  intro T.
+  intro append.
+  intro S_append.
+  intro xs.
+  induction xs as [ | x' xs' IHxs'].
+
+    intro a.
+    rewrite -> (unfold_reverse_acc_base_case T a).
+    rewrite -> (unfold_reverse_acc_base_case T nil).
+    rewrite -> (nil_is_neutral_for_append_on_the_left T append S_append a).
+    reflexivity.
+
+  intro a.
+  rewrite -> (unfold_reverse_acc_induction_case T x' xs' a).
+  rewrite -> (unfold_reverse_acc_induction_case T x' xs' nil).
+  rewrite -> (IHxs' (x' :: a)).
+  rewrite -> (IHxs' (x' :: nil)).
+  rewrite -> (append_is_associative T append S_append (reverse_acc T xs' nil) (x' :: nil) a).
+  unfold specification_of_append in S_append.
+  destruct S_append as [H_append_bc H_append_ic].
+  rewrite -> (H_append_ic x' nil a).
+  rewrite (H_append_bc a).
+  reflexivity.
+Qed.
+
 (* Replace "Abort." with a proof. *)
 
 Proposition reverse_v2_fits_the_specification_of_reverse :
