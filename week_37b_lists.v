@@ -1043,7 +1043,31 @@ Proposition listlessness_of_map :
            (xs : list T1),
       map23 f2 (map12 f1 xs) = map13 (fun x => f2 (f1 x)) xs.
 Proof.
-Abort.
+  intros T1 T2 T3 map12 map23 map13 S_map12 S_map23 S_map13.
+  induction xs as [ | x' xs' IHxs'].
+    unfold specification_of_map in S_map12.
+    destruct S_map12 as [H_map12_bc _].
+    rewrite -> (H_map12_bc f1).
+    unfold specification_of_map in S_map23.
+    destruct S_map23 as [H_map23_bc _].
+    rewrite -> (H_map23_bc f2).
+    unfold specification_of_map in S_map13.
+    destruct S_map13 as [H_map13_bc _].
+    rewrite -> (H_map13_bc (fun x : T1 => f2 (f1 x))).
+    reflexivity.
+
+  unfold specification_of_map in S_map12.
+  destruct S_map12 as [_ H_map12_ic].
+  unfold specification_of_map in S_map23.
+  destruct S_map23 as [_ H_map23_ic].
+  unfold specification_of_map in S_map13.
+  destruct S_map13 as [_ H_map13_ic].
+  rewrite -> (H_map13_ic (fun x : T1 => f2 (f1 x)) x'  xs').
+  rewrite <- (IHxs').
+  rewrite -> (H_map12_ic f1 x' xs').
+  rewrite -> (H_map23_ic f2 (f1 x') (map12 f1 xs')).
+  reflexivity.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 Proposition append_preserves_map :
