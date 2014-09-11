@@ -986,11 +986,35 @@ Definition map_v1 (T1 T2 : Type) (f : T1 -> T2) (xs : list T1) : list T2 :=
 
 Compute unit_tests_for_map_nat (map_v1 nat nat).
 
+Lemma unfold_map_ds_base_case :
+  forall (T1 T2 : Type) (f : T1 -> T2),
+    map_ds T1 T2 f nil = nil.
+Proof.
+  unfold_tactic map_ds.
+Qed.
+
+Lemma unfold_map_ds_induction_case :
+  forall (T1 T2 : Type) (f : T1 -> T2) (x : T1) (xs' : list T1),
+    map_ds T1 T2 f (x :: xs') = (f x) :: (map_ds T1 T2 f xs').
+Proof.
+  unfold_tactic map_ds.
+Qed.
+
+
 Proposition map_v1_fits_the_specification_of_map :
   forall T1 T2 : Type,
     specification_of_map T1 T2 (map_v1 T1 T2).
 Proof.
-Abort.
+  intros T1 T2.
+  unfold specification_of_map.
+  split.
+    intros f.
+    apply unfold_map_ds_base_case.
+
+  unfold map_v1.
+  intros f x xs'.
+  apply unfold_map_ds_induction_case.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 (* ********** *)
