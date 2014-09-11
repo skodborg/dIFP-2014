@@ -761,7 +761,20 @@ Proposition reverse_v2_fits_the_specification_of_reverse :
   forall T : Type,
     specification_of_reverse T (reverse_v2 T).
 Proof.
-Abort.
+  intro T.
+  unfold specification_of_reverse.
+  intros append S_append.
+  split.
+    unfold reverse_v2.
+    rewrite -> (unfold_reverse_acc_base_case T nil).
+    reflexivity.
+
+  intros x xs'.
+  unfold reverse_v2.
+  rewrite -> (unfold_reverse_acc_induction_case T x xs' nil).
+  rewrite -> (about_reverse_acc T append S_append xs' (x :: nil)).
+  reflexivity.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 (* ********** *)
@@ -788,7 +801,39 @@ Proposition reverse_preserves_length :
     forall xs : list T,
       length xs = length (reverse xs).
 Proof.
-Abort.
+intros T length append reverse S_length S_append S_reverse.
+  induction xs as [ | x' xs' IHxs'].
+    unfold specification_of_reverse in S_reverse.
+    destruct (S_reverse append S_append) as [H_reverse_bc _].
+    clear S_reverse.
+    rewrite -> H_reverse_bc.
+    reflexivity.
+
+
+  assert (S_length_snapshot := S_length).
+  unfold specification_of_length in S_length.
+  destruct S_length as [H_length_bc H_length_ic].
+  rewrite -> (H_length_ic x' xs').
+  rewrite -> IHxs'.
+
+  unfold specification_of_reverse in S_reverse.
+  destruct (S_reverse append S_append) as [_ H_reverse_ic].
+  clear S_reverse.
+  rewrite -> (H_reverse_ic x' xs').
+  rewrite -> (append_preserves_length 
+                      T 
+                      length 
+                      append 
+                      S_length_snapshot 
+                      S_append 
+                      (reverse xs') 
+                      (x' :: nil)).
+  rewrite -> (H_length_ic x' nil).
+  rewrite <- (plus_Snm_nSm (length (reverse xs')) (length nil)).
+  rewrite -> H_length_bc.
+  rewrite -> (plus_0_r (S (length (reverse xs')))).
+  reflexivity.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 Proposition reverse_preserves_append_sort_of :
