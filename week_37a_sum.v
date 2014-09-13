@@ -251,11 +251,16 @@ Proof.
   rewrite -> (H_sum_ic n').
   rewrite -> (mult_plus_distr_l 2 (sum (fun i : nat => i) n') (S n')).
   rewrite IHn'.
-  rewrite <- (mult_plus_distr_r n' 2 (S n')).
-  rewrite -> (mult_comm (S n') (S (S n'))).
-  rewrite -> (unfold_mult_ic (S n') (S n')).
+  rewrite -> (mult_comm n' (S n')).
+  rewrite -> (mult_comm 2 (S n')).
+  rewrite <- (mult_plus_distr_l (S n') n' 2).
+  rewrite <- (plus_1_l (S n')).
   rewrite <- (plus_1_l n').
-Admitted.  
+  rewrite -> (plus_assoc 1 1 n').
+  rewrite <- (plus_1_l (S 0)).
+  rewrite -> (plus_comm n' (1 + 1)).
+  reflexivity.
+Qed.
 
 (* Replace "Abort." with a proof. *)
 
@@ -277,17 +282,21 @@ Proof.
 
     rewrite -> (unfold_mult_bc 1).
     rewrite -> H_sum_bc.
-    rewrite (mult_comm 2 0).
-    rewrite -> (unfold_mult_bc 2).
+    rewrite -> (mult_0_r 2).
     reflexivity.
 
   rewrite -> (H_sum_ic n').
   rewrite -> (IHn').
-  (* samme som før? *)
-Admitted.
-
-
-
+  rewrite -> (mult_comm n' (S n')).
+  rewrite -> (mult_comm 2 (S n')).
+  rewrite <- (mult_plus_distr_l (S n') n' 2).
+  rewrite <- (plus_1_l (S n')).
+  rewrite <- (plus_1_l n').
+  rewrite -> (plus_assoc 1 1 n').
+  rewrite <- (plus_1_l (S 0)).
+  rewrite -> (plus_comm n' (1 + 1)).
+  reflexivity.
+Qed.
 
 (* Replace "Abort." with a proof. *)
 
@@ -310,7 +319,23 @@ Lemma binomial_2 :
   forall x y : nat,
     (x + y) * (x + y) = x * x + 2 * x * y + y * y.
 Proof.
-Abort.
+  intros x y.
+  rewrite -> (mult_plus_distr_l (x + y) x y).
+  rewrite (mult_comm (x + y) x).
+  rewrite (mult_comm (x + y) y).
+  rewrite -> (mult_plus_distr_l x x y).
+  rewrite -> (mult_plus_distr_l y x y).
+  rewrite (mult_comm y x).
+  rewrite -> (mult_succ_l 1 x).
+  rewrite -> (mult_succ_l 0 x).
+  rewrite -> (mult_0_l x).
+  rewrite -> (plus_0_l x).
+  rewrite -> (mult_plus_distr_r x x y).
+  rewrite -> (plus_assoc (x * x + x * y) (x * y) (y * y)).
+  rewrite -> (plus_assoc (x * x) (x * y) (x * y)).
+  reflexivity.
+Qed.
+
 (* Replace "Abort." with a proof. *)
 
 Lemma about_sum_odd_numbers :
@@ -319,7 +344,34 @@ Lemma about_sum_odd_numbers :
     forall n : nat,
       sum (fun i => S (2 * i)) n = S n * S n.
 Proof.
-Abort.
+  intro sum.
+  intro S_sum.
+  intro n.
+  unfold specification_of_sum in S_sum.
+  destruct (S_sum (fun i : nat => S (2 * i))) as [H_sum_bc H_sum_ic].
+  clear S_sum.
+  induction n as [ | n' IHn'].
+
+    rewrite -> H_sum_bc.
+    rewrite -> (mult_0_r 2).
+    rewrite -> (mult_1_r 1).
+    reflexivity.
+
+  rewrite -> (H_sum_ic n').
+  rewrite -> IHn'.
+  rewrite -> (mult_succ_l 1 (S n')).
+  rewrite -> (mult_1_l (S n')).
+  rewrite (plus_comm (S n' * S n') (S (S n' + S n'))).
+  rewrite <- (plus_Sn_m (S n') (S n')).
+  rewrite -> (mult_succ_r (S (S n'))).
+  rewrite -> (mult_succ_l (S n')).
+  rewrite (plus_comm (S n' * S n' + S n') (S (S n'))).
+  rewrite (plus_comm (S n' * S n') (S n')).
+  rewrite -> (plus_assoc (S (S n')) (S n') (S n' * S n')).
+  reflexivity.
+Qed.
+
+
 (* Replace "Abort." with a proof. *)
 
 (* ***** *)
@@ -333,7 +385,31 @@ Lemma factor_sum_on_the_left :
            (c k : nat),
       sum (fun x => c * h x) k = c * sum (fun x => h x) k.
 Proof.
-Abort.
+  intro sum.
+  intro S_sum.
+  intro h.
+  intros c k.
+  assert (S_sum_copy := S_sum).
+  unfold specification_of_sum in S_sum.
+  destruct (S_sum (fun x : nat => c * h x)) as [H_sum_bc H_sum_ic].
+  clear S_sum.
+  induction k as [ | k' IHk'].
+
+    rewrite -> H_sum_bc.
+    unfold specification_of_sum in S_sum_copy.
+    destruct (S_sum_copy (fun x : nat => h x)) as [H_sumcopy_bc H_sumcopy_ic].
+    rewrite -> H_sumcopy_bc.
+    reflexivity.
+
+  rewrite -> (H_sum_ic k').
+  rewrite -> IHk'.
+  unfold specification_of_sum in S_sum_copy.
+  destruct (S_sum_copy (fun x : nat => h x)) as [_ H_sumcopy_ic].
+  rewrite -> (H_sumcopy_ic k').
+  rewrite -> (mult_plus_distr_l c (sum (fun x : nat => h x) k') (h (S k'))).
+  reflexivity.
+Qed.
+
 (* Replace "Abort." with a proof. *)
 
 Lemma factor_sum_on_the_right :
@@ -343,7 +419,32 @@ Lemma factor_sum_on_the_right :
            (c k : nat),
       sum (fun x => h x * c) k = (sum (fun x => h x) k) * c.
 Proof.
-Abort.
+  intro sum.
+  intro S_sum.
+  intros h c k.
+  assert (S_sum_copy := S_sum).
+  unfold specification_of_sum in S_sum.
+  destruct (S_sum (fun x : nat => h x * c)) as [H_sum_bc H_sum_ic].
+  clear S_sum.
+  induction k as [ | k' IHk'].
+
+    rewrite -> H_sum_bc.
+    unfold specification_of_sum in S_sum_copy.
+    destruct (S_sum_copy (fun x : nat => h x)) as [H_sumcopy_bc _].
+    clear S_sum_copy.
+    rewrite -> H_sumcopy_bc.
+    reflexivity.
+
+  rewrite -> (H_sum_ic k').
+  rewrite -> IHk'.
+  unfold specification_of_sum in S_sum_copy.
+  destruct (S_sum_copy (fun x : nat => h x)) as [_ H_sumcopy_ic].
+  clear S_sum_copy.
+  rewrite -> (H_sumcopy_ic k').
+  rewrite <- (mult_plus_distr_r (sum (fun x : nat => h x) k') (h (S k')) c).
+  reflexivity.
+Qed.
+
 (* Replace "Abort." with a proof. *)
 
 Theorem June_exam :
@@ -354,7 +455,20 @@ Theorem June_exam :
       sum (fun i => sum (fun j => f i * g j) n) m =
       (sum (fun i => f i) m) * (sum (fun j => g j) n).
 Proof.
-Abort.
+  intro sum.
+  intro S_sum.
+  intros f g.
+  intros m n.
+  assert (S_sum_copy := S_sum).
+  unfold specification_of_sum in S_sum.
+  
+
+
+
+
+Admitted.
+
+
 (* Replace "Abort." with a proof. *)
 
 (* ********** *)
