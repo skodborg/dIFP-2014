@@ -285,10 +285,26 @@ Qed.
 
   
 (*
-       (a) prove nat_ind1
-       (b) prove nat_ind2
+        2.(b) prove nat_ind2
 *)
+Lemma nat_ind2_prove_by_using_nat_ind_3 :
+  forall P : nat -> Prop,
+    P 0 ->
+    P 1 ->
+    (forall i : nat,
+      P i -> P (S i) -> P (S (S i))) ->
+    forall n : nat,
+      P n.
+Proof.
+  intros P H_P0 H_P1 H_PSS n.
+  induction n as [ | | | n' IH_n' IH_Sn' IH_SSn'] using nat_ind3.
+  
+  exact H_P0.
+  exact H_P1.
+  exact (H_PSS 0 H_P0 H_P1).
 
+  exact (H_PSS (S n') IH_Sn' IH_SSn').
+Qed.
 (* ********** *)
 
 (* end of week_38b_induction_after_todays_lecture.v *)
