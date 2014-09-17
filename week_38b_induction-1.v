@@ -264,6 +264,7 @@ Proof.
         exact ly.
 Qed.
 
+(* 2.a prove nat_ind1 using nat_ind3 *)
 Lemma nat_ind1_prove_by_using_nat_ind_3 :
   forall P : nat -> Prop,
     P 0 ->
@@ -273,16 +274,17 @@ Lemma nat_ind1_prove_by_using_nat_ind_3 :
       P n.
 Proof.
   intros P H_bc H_ic n.
-  induction n as [ | | | n' IHn' IHSn' IHSSn' ] using nat_ind3.
+  induction n as [ | | | n' IH_n' IH_Sn' IH_SSn'] using nat_ind3.
   exact H_bc.
   exact (H_ic 0 H_bc).
   exact (H_ic 1 (H_ic 0 H_bc)).
+  
+  exact (H_ic (S (S n')) IH_SSn').
+Qed.
 
-Abort.  
 
   
 (*
-   (2) using nat_ind3,
        (a) prove nat_ind1
        (b) prove nat_ind2
 *)
