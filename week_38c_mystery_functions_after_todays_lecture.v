@@ -40,7 +40,18 @@ Proposition there_is_only_one_mystery_function_0 :
     forall n : nat,
       f n = g n.
 Proof.
-Abort.
+  intros f g [Sf_bc Sf_ic] [Sg_bc Sg_ic] n.
+  induction n as [ | n' IHn'].
+    rewrite -> Sg_bc.
+    apply Sf_bc.
+    rewrite -> (plus_n_O n').
+    rewrite -> Sf_ic.
+    rewrite -> Sg_ic.
+    rewrite -> Sf_bc.
+    rewrite -> Sg_bc.
+    rewrite -> IHn'.
+    reflexivity.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 (* ***** *)
@@ -88,7 +99,7 @@ Definition unit_test_for_the_mystery_function_0 (f : nat -> nat) :=
   .
 
 Compute unit_test_for_the_mystery_function_0 S.
-
+Check S.
 (* ***** *)
 
 Theorem and_the_mystery_function_0_is_dot_dot_dot :
@@ -120,7 +131,19 @@ Proposition there_is_only_one_mystery_function_1 :
     forall n : nat,
       f n = g n.
 Proof.
-Abort.
+  intros f g [Sf_bc Sf_ic] [Sg_bc Sg_ic] n.
+  induction n as [ | n' IHn'].
+    rewrite -> Sg_bc.
+    apply Sf_bc.
+  Search (0 + _ = _).
+  rewrite <- (plus_O_n (S n')).
+  rewrite -> Sf_ic.
+  rewrite -> Sg_ic.
+  rewrite -> Sf_bc.
+  rewrite -> Sg_bc.
+  rewrite -> IHn'.
+  reflexivity.
+Qed.
 (* Replace "Abort." with a proof. *)
 
 (* ***** *)
@@ -137,28 +160,36 @@ Definition unit_test_for_the_mystery_function_1 (f : nat -> nat) :=
    f 1
    = ...
 *)
-(* 
-  &&
-  (f 1 =n= ...)
-*)
-  .
 
-(*
-Compute unit_test_for_the_mystery_function_1 ....
-*)
+  &&
+  (f 1 =n= 1)
+  &&
+  (f 2 =n= 2)
+  &&
+  (f 3 =n= 3)
+  &&
+  (f 4 =n= 4).
+
+Definition mystery_function_1 n : nat :=
+  n.
+
+Compute unit_test_for_the_mystery_function_1 (mystery_function_1 ).
+
 
 (* ***** *)
 
-(*
+
 Theorem and_the_mystery_function_1_is_dot_dot_dot :
-  specification_of_the_mystery_function_1 ....
+  specification_of_the_mystery_function_1 mystery_function_1.
 Proof.
   unfold specification_of_the_mystery_function_1.
+  unfold mystery_function_1.
   split.
+    reflexivity.
 
-  ...
+  reflexivity.
 Qed.  
-*)
+
 
 (* ********** *)
 
@@ -168,6 +199,56 @@ Definition specification_of_the_mystery_function_2 (f : nat -> nat) :=
   (forall i j : nat,
     f (S (i + j)) = S (f i) + S (f j)).
 
+Proposition there_is_only_one_mystery_function_2 :
+  forall f g : nat -> nat,
+    specification_of_the_mystery_function_2 f ->
+    specification_of_the_mystery_function_2 g ->
+    forall n : nat,
+      f n = g n.
+Proof.
+  intros f g [Sf_bc Sf_ic] [Sg_bc Sg_ic] n.
+  induction n as [ | n' IHn'].
+    rewrite -> Sg_bc.
+    apply Sf_bc.
+
+  rewrite <- (plus_O_n n').
+  rewrite -> Sf_ic.
+  rewrite -> Sg_ic.
+  rewrite -> Sf_bc.
+  rewrite -> Sg_bc.
+  rewrite -> IHn'.
+  reflexivity.
+Qed.
+
+Definition unit_test_for_the_mystery_function_2 (f : nat -> nat) :=
+  (f 0 =n= 0)
+  &&
+  (f 1 =n= 2)
+  &&
+  (f 2 =n= 4)
+  &&
+  (f 3 =n= 6)
+  &&
+  (f 4 =n= 8).
+
+Definition mystery_function_2 n : nat :=
+  2*n.
+
+Compute unit_test_for_the_mystery_function_2 mystery_function_2.
+
+Theorem and_the_mystery_function_2_is_dot_dot_dot :
+  specification_of_the_mystery_function_2 mystery_function_2.
+Proof.
+  unfold specification_of_the_mystery_function_2.
+  unfold mystery_function_2.
+  split.
+    apply plus_0_l.
+
+  intros i j.
+  ring.
+Qed.
+
+  
 (* ********** *)
 
 Definition specification_of_the_mystery_function_3 (f : nat -> nat) :=
@@ -176,6 +257,58 @@ Definition specification_of_the_mystery_function_3 (f : nat -> nat) :=
   (forall i j : nat,
     f (S (i + j)) = S (f i) + S (f j)).
 
+
+Proposition there_is_only_one_mystery_function_3 :
+  forall f g : nat -> nat,
+    specification_of_the_mystery_function_3 f ->
+    specification_of_the_mystery_function_3 g ->
+    forall n : nat,
+      f n = g n.
+Proof.
+  intros f g [Sf_bc Sf_ic] [Sg_bc Sg_ic] n.
+  induction n as [ | n' IHn'].
+    rewrite -> Sg_bc.
+    apply Sf_bc.
+    
+  rewrite <- (plus_O_n n').
+  rewrite -> Sf_ic.
+  rewrite -> Sg_ic.
+  rewrite -> Sf_bc.
+  rewrite -> Sg_bc.
+  rewrite -> IHn'.
+  reflexivity.
+Qed.
+
+Definition unit_test_for_the_mystery_function_3 (f : nat -> nat) :=
+  (f 0 =n= 1)
+  &&
+  (f 1 =n= 4)
+  &&
+  (f 2 =n= 7)
+  &&
+  (f 3 =n= 10)
+  &&
+  (f 4 =n= 13).
+
+Definition mystery_function_3 (n : nat) : nat :=
+  3*n+1.
+  
+Compute unit_test_for_the_mystery_function_3 mystery_function_3.
+
+Theorem and_the_mystery_function_3_is_dot_dot_dot :
+  specification_of_the_mystery_function_3 mystery_function_3.
+Proof.
+  unfold specification_of_the_mystery_function_3.
+  unfold mystery_function_3.
+  split.
+    rewrite -> plus_0_l.
+    reflexivity.
+
+  intros i j.
+  ring.
+Qed.
+
+
 (* ********** *)
 
 Definition specification_of_the_mystery_function_4 (f : nat -> nat) :=
@@ -183,6 +316,58 @@ Definition specification_of_the_mystery_function_4 (f : nat -> nat) :=
   /\
   (forall i j : nat,
     f (i + j) = f i + f j).
+
+Proposition there_is_only_one_mystery_function_4 :
+  forall f g : nat -> nat,
+    specification_of_the_mystery_function_4 f ->
+    specification_of_the_mystery_function_4 g ->
+    forall n : nat,
+      f n = g n.
+Proof.
+  intros f g [Sf_bc Sf_ic] [Sg_bc Sg_ic] n.
+  induction n as [ | n' IHn'].
+    rewrite -> Sg_bc.
+    apply Sf_bc.
+    
+  Require Import week_37a_sum.
+  rewrite <- (plus_1_l n').
+  rewrite -> Sf_ic.
+  rewrite -> Sg_ic.
+  rewrite -> IHn'.
+  
+  reflexivity.
+Qed.
+
+Definition unit_test_for_the_mystery_function_4 (f : nat -> nat) :=
+  (f 0 =n= 0)
+  &&
+  (f 1 =n= )
+  &&
+  (f 2 =n= )
+  &&
+  (f 3 =n= )
+  &&
+  (f 4 =n= ).
+
+Definition mystery_function_4 (n : nat) : nat :=
+  3*n+1.
+  
+Compute unit_test_for_the_mystery_function_4 mystery_function_4.
+
+Theorem and_the_mystery_function_4_is_dot_dot_dot :
+  specification_of_the_mystery_function_4 mystery_function_4.
+Proof.
+  unfold specification_of_the_mystery_function_4.
+  unfold mystery_function_4.
+  split.
+    rewrite -> plus_0_l.
+    reflexivity.
+
+  intros i j.
+  ring.
+Qed.
+
+
 
 (* ********** *)
 
