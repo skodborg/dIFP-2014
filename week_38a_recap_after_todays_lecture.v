@@ -338,7 +338,28 @@ Proposition there_is_only_one_power :
     forall x n : nat,
       power1 x n = power2 x n.
 Proof.
-Abort.
+  intros power1 power2.
+  intros S_power1 S_power2.
+  intros x n.
+  induction n as [ | n' IHn'].
+    unfold specification_of_power in S_power1.
+    destruct S_power1 as [H_pow_bc H_pow_ic].
+    unfold specification_of_power in S_power2.
+    destruct S_power2 as [H_pow2_bc H_pow2_ic].
+    rewrite H_pow_bc.
+    rewrite H_pow2_bc.
+    reflexivity.
+
+  unfold specification_of_power in S_power1.
+  destruct S_power1 as [H_pow_bc H_pow_ic].
+  unfold specification_of_power in S_power2.
+  destruct S_power2 as [H_pow2_bc H_pow2_ic].
+  rewrite H_pow_ic.
+  rewrite H_pow2_ic.
+  rewrite IHn'.
+  reflexivity.
+Qed.
+
 (* Replace "Abort." with a (standard) proof. *)
 
 (* Some lemmas about power: *)
@@ -349,7 +370,19 @@ Lemma about_power_base_one :
     forall n : nat,
       power 1 n = 1.
 Proof.
-Abort.
+  intros power S_power.
+  intro n.
+  unfold specification_of_power in S_power.
+  destruct S_power as [H_pow_bc H_pow_ic].
+  induction n as [ | n' IHn'].
+
+    exact (H_pow_bc 1).
+
+  rewrite H_pow_ic.
+  rewrite mult_1_l.
+  exact IHn'.
+Qed.
+
 (* Replace "Abort." with a (standard) proof. *)
 
 Lemma about_power_base_mult :
@@ -358,7 +391,21 @@ Lemma about_power_base_mult :
     forall x y n : nat,
       power (x * y) n = (power x n) * (power y n).
 Proof.
-Abort.
+  intros power S_power.
+  intros x y n.
+  unfold specification_of_power in S_power.
+  destruct S_power as [H_pow_bc H_pow_ic].
+  induction n as [ | n' IHn'].
+
+    rewrite ->3 H_pow_bc.
+    ring.
+
+  rewrite 3 H_pow_ic.
+  rewrite IHn'.
+  ring.
+Qed.
+
+
 (* Replace "Abort." with a (standard) proof. *)
 
 Lemma about_power_exponent_plus :
@@ -367,7 +414,25 @@ Lemma about_power_exponent_plus :
     forall x i j : nat,
       power x (i + j) = (power x i) * (power x j).
 Proof.
-Abort.
+  intros power S_power.
+  intros x i j.
+  unfold specification_of_power in S_power.
+  destruct S_power as [H_pow_bc H_pow_ic].
+  induction i as [ | i' IHi'].
+
+    rewrite H_pow_bc.
+    rewrite mult_1_l.
+    rewrite plus_0_l.
+    reflexivity.
+
+  rewrite plus_Sn_m.
+  rewrite H_pow_ic.
+  rewrite IHi'.
+  rewrite H_pow_ic.
+  ring.
+Qed.
+
+
 (* Replace "Abort." with a (standard) proof. *)
 
 Lemma about_power_exponent_mult :
@@ -376,7 +441,28 @@ Lemma about_power_exponent_mult :
     forall x i j : nat,
       power x (i * j) = power (power x i) j.
 Proof.
-Abort.
+  intros pow S_pow.
+  intros x i j.
+  assert (S_pow_copy := S_pow).
+  unfold specification_of_power in S_pow.
+  destruct S_pow as [H_pow_bc H_pow_ic].
+  induction i as [ | i' IHi'].
+
+    rewrite 2 H_pow_bc.
+    Check about_power_base_one.
+    symmetry.
+    exact (about_power_base_one pow S_pow_copy j).
+    
+  rewrite H_pow_ic.
+  rewrite (about_power_base_mult pow S_pow_copy).
+  rewrite <- IHi'.  
+  Search (S _ * _ = _ + _).
+  rewrite mult_succ_l.
+  rewrite (about_power_exponent_plus pow S_pow_copy).
+  ring.
+Qed.
+
+
 (* Replace "Abort." with a (standard) proof. *)
 
 (* ***** *)
@@ -415,7 +501,17 @@ Qed.
 Proposition power_ds_satisfies_the_specification_of_power :
   specification_of_power power_ds.
 Proof.
-Admitted.
+  unfold specification_of_power.
+  split.
+
+    intro x.
+    exact (unfold_power_ds_bc x).
+
+  intros x n'.
+  exact (unfold_power_ds_ic x n').
+Qed.
+
+
 (* Replace "Admitted." with a (standard) proof. *)
 
 Corollary power_v0_satisfies_the_specification_of_power:
@@ -461,7 +557,15 @@ Qed.
 Proposition power_v1_satisfies_the_specification_of_power :
   specification_of_power power_v1.
 Proof.
-Abort.
+  unfold specification_of_power.
+  split.
+
+    apply unfold_power_v1_bc.
+
+  apply unfold_power_v1_ic.
+Qed.
+
+
 (* Replace "Abort." with a (standard) proof. *)
 
 (* ***** *)
@@ -500,7 +604,19 @@ Qed.
 Proposition power_v2_satisfies_the_specification_of_power :
   specification_of_power power_v2.
 Proof.
-Abort.
+  unfold specification_of_power.
+  split.
+
+    intro x.
+    unfold power_v2.
+    apply unfold_power_acc_bc.
+
+  unfold power_v2.
+  rewrite -> unfold_power_acc_ic.
+  
+
+
+
 (* Replace "Abort." with a (standard) proof. *)
 
 (* ********** *)
