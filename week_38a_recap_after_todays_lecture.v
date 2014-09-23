@@ -612,10 +612,7 @@ Proof.
     apply unfold_power_acc_bc.
 
   unfold power_v2.
-  rewrite -> unfold_power_acc_ic.
-  
-
-
+Admitted.
 
 (* Replace "Abort." with a (standard) proof. *)
 

@@ -187,6 +187,7 @@ Proof.
   split.
     reflexivity.
 
+  intros i j.
   reflexivity.
 Qed.  
 
@@ -349,6 +350,7 @@ Proof.
   unfold specification_of_the_mystery_function_4.
   unfold mystery_function_4_1.
   split.
+    rewrite -> mult_0_r.
     reflexivity.
 
   intros i j.
@@ -361,6 +363,7 @@ Proof.
   unfold specification_of_the_mystery_function_4.
   unfold mystery_function_4_2.
   split.
+    rewrite -> mult_0_r.
     reflexivity.
 
   intros i j.
@@ -417,6 +420,7 @@ Proof.
   unfold specification_of_the_mystery_function_5.
   unfold mystery_function_5.
   split.
+    rewrite -> mult_0_r.
     reflexivity.
 
   intros i.
