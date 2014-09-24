@@ -99,7 +99,7 @@ Definition unit_test_for_the_mystery_function_0 (f : nat -> nat) :=
   .
 
 Compute unit_test_for_the_mystery_function_0 S.
-Check S.
+
 (* ***** *)
 
 Theorem and_the_mystery_function_0_is_dot_dot_dot :
@@ -187,6 +187,7 @@ Proof.
   split.
     reflexivity.
 
+  intros i j.
   reflexivity.
 Qed.  
 
@@ -337,6 +338,38 @@ Proof.
   
 Abort.
 
+Definition mystery_function_4_1 (n : nat) : nat :=
+  2*n.
+
+Definition mystery_function_4_2 (n : nat) : nat :=
+  3*n.
+  
+Theorem and_the_mystery_function_4_1_is_dot_dot_dot :
+  specification_of_the_mystery_function_4 mystery_function_4_1.
+Proof.
+  unfold specification_of_the_mystery_function_4.
+  unfold mystery_function_4_1.
+  split.
+    rewrite -> mult_0_r.
+    reflexivity.
+
+  intros i j.
+  ring.
+Qed.
+
+Theorem and_the_mystery_function_4_2_is_dot_dot_dot :
+  specification_of_the_mystery_function_4 mystery_function_4_2.
+Proof.
+  unfold specification_of_the_mystery_function_4.
+  unfold mystery_function_4_2.
+  split.
+    rewrite -> mult_0_r.
+    reflexivity.
+
+  intros i j.
+  ring.
+Qed.
+
 
 (* ********** *)
 
@@ -387,6 +420,7 @@ Proof.
   unfold specification_of_the_mystery_function_5.
   unfold mystery_function_5.
   split.
+    rewrite -> mult_0_r.
     reflexivity.
 
   intros i.
@@ -398,16 +432,6 @@ Qed.
 Definition specification_of_the_mystery_function_6 (f : nat -> nat) :=
   (forall i j : nat,
     f (i + j) = f i + 2 * i * j + f j).
-
-Proposition there_is_only_one_mystery_function_6 :
-  forall f g : nat -> nat,
-    specification_of_the_mystery_function_6 f ->
-    specification_of_the_mystery_function_6 g ->
-    forall n : nat,
-      f n = g n.
-Proof.
-Abort.
-
 
 (* ********** *)
 
@@ -486,49 +510,6 @@ Definition specification_of_the_mystery_function_8 (f : nat -> nat) :=
   (forall i j : nat,
     f (S (i + j)) = f i * f j).
 
-
-Proposition there_is_only_one_mystery_function_8 :
-  forall f g : nat -> nat,
-    specification_of_the_mystery_function_8 f ->
-    specification_of_the_mystery_function_8 g ->
-    forall n : nat,
-      f n = g n.
-Proof.
-  intros f g [Sf_bc Sf_ic] [Sg_bc Sg_ic] n.
-  induction n as [ | n' IHn'].
-    rewrite -> Sg_bc.
-    apply Sf_bc.
-    
-  rewrite <- (plus_O_n n').
-  rewrite -> Sf_ic.
-  rewrite -> Sg_ic.
-  rewrite -> Sf_bc.
-  rewrite -> Sg_bc.
-  rewrite -> IHn'.
-  reflexivity.
-Qed.
-
-Definition unit_test_for_the_mystery_function_8 (f : nat -> nat) :=
-  (f 0 =n= 2)
-  &&
-  (f 1 =n= 4)
-  &&
-  (f 2 =n= 8)
-  &&
-  (f 3 =n= 16)
-  &&
-  (f 4 =n= 32).
-
-Definition mystery_function_8 (n : nat) : nat :=
-  ( (n-1))*2.
-  
-Compute unit_test_for_the_mystery_function_8 mystery_function_8.
-
-Theorem and_the_mystery_function_8_is_dot_dot_dot :
-  specification_of_the_mystery_function_8 mystery_function_8.
-Proof.
-Abort.
-
 (* ********** *)
 
 Definition specification_of_the_mystery_function_9 (f : nat -> nat) :=
@@ -541,59 +522,6 @@ Definition specification_of_the_mystery_function_9 (f : nat -> nat) :=
   (forall p q : nat,
     f (S (p + q)) = f (S p) * f (S q) + f p * f q).
 
-Proposition there_is_only_one_mystery_function_9 :
-  forall f g : nat -> nat,
-    specification_of_the_mystery_function_9 f ->
-    specification_of_the_mystery_function_9 g ->
-    forall n : nat,
-      f n = g n.
-Proof.
-  intros f g [Sf_bc_0 [Sf_bc_1 [Sf_bc_2 Sf_ic]]] [Sg_bc_0 [Sg_bc_1 [Sg_bc_2 Sg_ic]]] n.
-  induction n as [ | n' IHn'].
-    rewrite -> Sg_bc_0.
-    apply Sf_bc_0.
-    
-      rewrite <- (plus_O_n x).
-      rewrite -> Sf_ic.
-      rewrite -> Sg_ic.
-      rewrite -> Sf_bc_0.
-      rewrite -> Sg_bc_0.
-      rewrite -> Sf_bc_1.
-      rewrite -> Sg_bc_1.
-Qed.
-
-Definition unit_test_for_the_mystery_function_9 (f : nat -> nat) :=
-  (f 0 =n= 0)
-  &&
-  (f 1 =n= 1)
-  &&
-  (f 2 =n= 1)
-  &&
-  (f 3 =n= 2)
-  &&
-  (f 4 =n= 3)
-  &&
-  (f 5 =n= 5).
-
-Compute unit_test_for_the_mystery_function_9 fib_v0.
-
-Theorem and_the_mystery_function_9_is_dot_dot_dot :
-  specification_of_the_mystery_function_9 fib_v0.
-Proof.
-  unfold specification_of_the_mystery_function_9.
-  unfold fib_v0.
-  split.
-    apply unfold_fib_ds_base_case_0.
-
-  split.
-    apply unfold_fib_ds_base_case_1.
-
-  split.
-    apply unfold_fib_ds_induction_case.
-
-  intros p q.
-Abort.
-
 (* ********** *)
 
 Definition specification_of_the_mystery_function_10 (f : nat -> bool) :=
@@ -605,5 +533,6 @@ Definition specification_of_the_mystery_function_10 (f : nat -> bool) :=
      f (i + j) = eqb (f i) (f j)).
 
 (* ********** *)
+
 
 (* end of week_38c_mystery_functions_after_todays_lecture.v *)

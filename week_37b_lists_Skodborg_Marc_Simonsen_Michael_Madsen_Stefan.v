@@ -510,7 +510,7 @@ Proof.
 
   intros ys zs.
   rewrite -> (Hic x xs' ys).
-  rewrite -> (Hic x (append xs' ys)).
+  rewrite -> (Hic x (append xs' ys) zs).
   rewrite -> (Hic x xs' (append ys zs)).
   rewrite -> (IHxs' ys zs).
   reflexivity.

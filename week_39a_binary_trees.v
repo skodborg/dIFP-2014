@@ -8,8 +8,11 @@ Require Import Arith Bool unfold_tactic.
 
 (* ********** *)
 
+<<<<<<< HEAD
 (* Definerer en datatype (svarer til SML) med to constructors, Leaf og Node som hver tager hhv.
 en nat og et objekt af typen binary_tree_nat som vi definerer (altså rekursiv!) *)
+=======
+>>>>>>> FETCH_HEAD
 Inductive binary_tree_nat : Type :=
   | Leaf : nat -> binary_tree_nat
   | Node : binary_tree_nat -> binary_tree_nat -> binary_tree_nat.
@@ -25,7 +28,11 @@ Definition bt_2 :=
   Node (Node (Leaf 10)
              (Leaf 20))
        (Leaf 30).
+<<<<<<< HEAD
 Print bt_2.
+=======
+
+>>>>>>> FETCH_HEAD
 (*
 Print bt_2.
 bt_2 = Node (Node (Leaf 10) (Leaf 20)) (Leaf 30)
@@ -66,11 +73,14 @@ Proof.
   unfold specification_of_number_of_leaves.
   intros [Hf_leaf Hf_node] [Hg_leaf Hg_node].
   intro t.
+<<<<<<< HEAD
   (* induktion i t. t er af en Inductive type, binary_tree_nat. Udsagnet skal bevises sand i base case, når
      t er en LEAF-konstruktion (svarer til 0 for nat). Nu kan t så antages at være en tilfældig konstruktion
      af typen binary_tree_nat. Man antager nu, at udsagnet gælder for de to tilfældige konstruktioner (IH), og skal
      nu bevise, at samles disse under en NODE-konstruktion, så gælder udsagnet stadig. *)
   (* n til venstre er hvad der sker med Leaf, højre er hvad der sker med trees? *)
+=======
+>>>>>>> FETCH_HEAD
   induction t as [n | t1 IHt1 t2 IHt2].
 
   rewrite -> Hf_leaf.
@@ -84,7 +94,10 @@ Proof.
   reflexivity.
 Qed.
 
+<<<<<<< HEAD
 (* en funktionsimplementation *)
+=======
+>>>>>>> FETCH_HEAD
 Fixpoint number_of_leaves_ds (t : binary_tree_nat) : nat :=
   match t with
     | Leaf n =>
@@ -93,7 +106,10 @@ Fixpoint number_of_leaves_ds (t : binary_tree_nat) : nat :=
       (number_of_leaves_ds t1) + (number_of_leaves_ds t2)
   end.
 
+<<<<<<< HEAD
 (* unfold lemmas til den rekursive funktionsstruktur ovenfor *)
+=======
+>>>>>>> FETCH_HEAD
 Lemma unfold_number_of_leaves_ds_leaf :
   forall n : nat,
     number_of_leaves_ds (Leaf n) = 1.
@@ -109,7 +125,10 @@ Proof.
   unfold_tactic number_of_leaves_ds.
 Qed.
 
+<<<<<<< HEAD
 (* "navngivning, implementation" af funktionen *)
+=======
+>>>>>>> FETCH_HEAD
 Definition number_of_leaves_v0 (t : binary_tree_nat) : nat :=
   number_of_leaves_ds t.
 
@@ -123,6 +142,7 @@ Compute unit_test_for_number_of_leaves number_of_leaves_v0.
    write a version number_of_leaves_v1
    that uses an accumulator.
 *)
+<<<<<<< HEAD
 Fixpoint number_of_leaves_acc (t : binary_tree_nat) (a : nat) : nat :=
   match t with
       | Leaf n =>
@@ -152,6 +172,8 @@ Definition number_of_leaves_v1 (a : nat) (t : binary_tree_nat) : nat :=
 
 Compute unit_test_for_number_of_leaves (number_of_leaves_v1 0).
 
+=======
+>>>>>>> FETCH_HEAD
 
 (* ********** *)
 
@@ -160,6 +182,7 @@ Compute unit_test_for_number_of_leaves (number_of_leaves_v1 0).
    of a binary tree.
 *)
 
+<<<<<<< HEAD
 Definition unit_test_for_number_of_nodes (candidate : binary_tree_nat -> nat) :=
   (candidate bt_0 =n= 0)
     &&
@@ -255,6 +278,8 @@ Definition number_of_nodes_v1 (a : nat) (t : binary_tree_nat) : nat :=
 
 Compute unit_test_for_number_of_nodes (number_of_nodes_v1 0).
 
+=======
+>>>>>>> FETCH_HEAD
 (* ********** *)
 
 (* end of week_39a_binary_trees.v *)
