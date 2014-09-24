@@ -167,11 +167,19 @@ Definition specification_of_execute_byte_code_instruction (execute : byte_code_i
   (forall (n : nat) (s : data_stack),
      execute (PUSH n) s = (n :: s))
   /\
-  (forall (n1 n2 : nat) (s t : data_stack),
-     execute ADD (n1 :: n2 :: t) = execute (PUSH (n1 + n2)) t)
+  (forall (n1 n2 : nat) (s : data_stack),
+     execute ADD s = match s with
+        | (n1 :: n2 :: s) => ((n1 + n2) :: s)
+        | (n1 :: nil) => (n1 :: nil)
+        | (nil) => (0 :: nil)
+      end)
   /\
-  (forall (n1 n2 : nat) (s t : data_stack),
-     execute MUL (n1 :: n2 :: t) = execute (PUSH (n1 * n2)) t).
+  (forall (n1 n2 : nat) (s : data_stack),
+     execute MUL s = match s with
+        | (n1 :: n2 :: s) => ((n1 * n2) :: s)
+        | (n1 :: nil) => (0 :: nil)
+        | (nil) => (0 :: nil)
+      end).
 
 (* IKKE FIXPOINT da funktionen ikke er rekursiv (det er en straight-line interpreter, rekursion er ubrugelig) *)
 Definition execute_byte_code_instruction (instr : byte_code_instruction) (s : data_stack) : data_stack :=
@@ -199,7 +207,7 @@ Proof.
 Qed.
 
 Lemma unfold_execute_byte_code_instruction_add :
-  forall (n : nat) (s : data_stack),
+  forall (s : data_stack),
     execute_byte_code_instruction ADD s = match s with
                                             | (n1 :: n2 :: t) => ((n1 + n2) :: t)
                                             | (n1 :: nil) => (n1 :: nil)
@@ -210,7 +218,7 @@ Proof.
 Qed.
 
 Lemma unfold_execute_byte_code_instruction_mul :
-  forall (n : nat) (s : data_stack),
+  forall (s : data_stack),
     execute_byte_code_instruction MUL s = match s with
                                             | (n1 :: n2 :: t) => ((n1 * n2) :: t)
                                             | (n1 :: nil) => (0 :: nil)
@@ -225,7 +233,21 @@ Qed.
 Definition execute_byte_code_instruction_v0 (instr : byte_code_instruction) (s : data_stack) : data_stack :=
   execute_byte_code_instruction instr s.
 
+Proposition execute_byte_code_satisfies_the_specification_of_execute_byte_code_instruction :
+  specification_of_execute_byte_code_instruction execute_byte_code_instruction_v0.
+Proof.
+  unfold specification_of_execute_byte_code_instruction.
+  unfold execute_byte_code_instruction_v0.
+  split.
+    exact unfold_execute_byte_code_instruction_push.
 
+  split.
+    intros n1 n2.
+    exact unfold_execute_byte_code_instruction_add.
+
+  intros n1 n2.
+  exact unfold_execute_byte_code_instruction_mul.
+Qed.
 
 (* ********** *)
 
