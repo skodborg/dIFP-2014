@@ -272,6 +272,8 @@ Definition specification_of_execute_byte_code_program (execute : byte_code_progr
   (forall (instr : byte_code_instruction) (prog : byte_code_program) (s : data_stack),
      execute (instr :: prog) s = (execute prog (execute_byte_code_instruction_v0 instr s))).
 
+
+
 Fixpoint execute_byte_code_program (prog : byte_code_program) (s : data_stack) : data_stack :=
   match prog with
     | nil => s
@@ -292,8 +294,19 @@ Proof.
   unfold_tactic execute_byte_code_program.
 Qed.
 
+Definition execute_byte_code_program_v0 (prog : byte_code_program) (s : data_stack) : data_stack :=
+  execute_byte_code_program prog s.
 
+Proposition execute_byte_code_program_satisfies_the_specification :
+  specification_of_execute_byte_code_program execute_byte_code_program_v0.           
+Proof.
+  unfold specification_of_execute_byte_code_program.
+  unfold execute_byte_code_program_v0.
+  split.
+    exact unfold_execute_byte_code_program_bc.
 
+  exact unfold_execute_byte_code_program_ic.
+Qed.
 
 (* ********** *)
 
