@@ -142,11 +142,7 @@ Definition data_stack := list nat.
    that executes a byte-code instruction, given a data stack
    and returns this stack after the instruction is executed.
 
-<<<<<<< HEAD
    * Executing (PUSH n) given s has the effect of pushing n on s.       (cons on list)
-=======
-   * Executing (PUSH n) given s has the effect of pushing n on s.
->>>>>>> FETCH_HEAD
 
    * Executing ADD given s has the effect of popping two numbers
      from s and then pushing the result of adding them.
@@ -257,6 +253,57 @@ Qed.
    that executes a given byte-code program on a given data stack,
    and returns this stack after the program is executed.
 *)
+
+Require Import week_37b_lists_Skodborg_Marc_Simonsen_Michael_Madsen_Stefan.
+
+(*
+Definition specification_of_execute_byte_code_program (execute : byte_code_program -> data_stack -> data_stack) :=
+  (forall (prog : byte_code_program) (s : data_stack),
+    map_v1 byte_code_program data_stack execute_byte_code_instruction_v0 prog).
+*)
+
+
+
+
+Definition specification_of_execute_byte_code_program (execute : byte_code_program -> data_stack -> data_stack) :=
+  (forall (s : data_stack),
+     execute nil s = s)
+  /\
+  (forall (instr : byte_code_instruction) (s : data_stack),
+     execute (instr :: nil) s = (execute_byte_code_instruction_v0 instr s))
+  /\
+  (forall (instr : byte_code_instruction) (prog : byte_code_program) (s : data_stack),
+     execute (instr :: prog) s = (execute prog (execute_byte_code_instruction_v0 instr s))).
+
+Fixpoint execute_byte_code_program (prog : byte_code_program) (s : data_stack) : data_stack :=
+  match prog with
+    | nil => s
+    | (h :: nil) => (execute_byte_code_instruction_v0 h s)
+    | (h :: t) => (execute_byte_code_program t (execute_byte_code_instruction_v0 h s))
+  end.
+
+Lemma unfold_execute_byte_code_program_nil :
+  forall s : data_stack,
+    execute_byte_code_program nil s = s.
+Proof.
+  unfold_tactic execute_byte_code_program.
+Qed.
+
+Lemma unfold_execute_byte_code_program_single_instr :
+  forall (h : byte_code_instruction) (s : data_stack),
+    execute_byte_code_program (h :: nil) s = (execute_byte_code_instruction_v0 h s).
+Proof.
+  unfold_tactic execute_byte_code_program.
+Qed.
+
+Lemma unfold_execute_byte_code_program_list_of_instr :
+  forall (h : byte_code_instruction) (t : byte_code_program) (s : data_stack),
+    execute_byte_code_program (h :: t) s = (execute_byte_code_program t (execute_byte_code_instruction_v0 h s)).
+Proof.
+  unfold_tactic execute_byte_code_program.
+Qed.
+
+
 
 
 (* ********** *)
