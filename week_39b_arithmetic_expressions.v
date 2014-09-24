@@ -416,33 +416,22 @@ Proposition about_execute_byte_code_program :
     forall (p1 p2 : byte_code_program) (s : data_stack),
       execute (p1 ++ p2) s = execute p2 (execute p1 s).
 Proof.
-  intros execute S_execute p1 p2 s.
-  unfold specification_of_execute_byte_code_program in S_execute.
-  destruct S_execute as [S_execute_bc S_execute_ic].
+  intros execute.
+  intros [S_execute_bc S_execute_ic].
+  intros p1.
   induction p1 as [ | p1' p1s' IHp1s' ].
+    intros p2 s.
     rewrite -> S_execute_bc.
     rewrite -> app_nil_l.
     reflexivity.
 
+  intros p2 s.
   rewrite -> S_execute_ic.
-  rewrite <- app_comm_cons.
-  unfold execute_byte_code_instruction_v0.
-  unfold execute_byte_code_instruction.
-
-Restart.
-  intros execute S_execute p1 p2 s.
-  unfold specification_of_execute_byte_code_program in S_execute.
-  destruct S_execute as [S_execute_bc S_execute_ic].
-  case p1.
-    rewrite -> S_execute_bc.
-    rewrite -> app_nil_l.
-    reflexivity.
-
-  intros b l.
+  rewrite <- IHp1s'.
   rewrite <- app_comm_cons.
   rewrite -> S_execute_ic.
-  rewrite -> S_execute_ic.
-  rewrite <- (S_execute_ic p2 (execute l (execute_byte_code_instruction_v0 b s))).
+  reflexivity.
+Qed.
 
 (* ********** *)
 
