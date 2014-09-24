@@ -269,34 +269,23 @@ Definition specification_of_execute_byte_code_program (execute : byte_code_progr
   (forall (s : data_stack),
      execute nil s = s)
   /\
-  (forall (instr : byte_code_instruction) (s : data_stack),
-     execute (instr :: nil) s = (execute_byte_code_instruction_v0 instr s))
-  /\
   (forall (instr : byte_code_instruction) (prog : byte_code_program) (s : data_stack),
      execute (instr :: prog) s = (execute prog (execute_byte_code_instruction_v0 instr s))).
 
 Fixpoint execute_byte_code_program (prog : byte_code_program) (s : data_stack) : data_stack :=
   match prog with
     | nil => s
-    | (h :: nil) => (execute_byte_code_instruction_v0 h s)
     | (h :: t) => (execute_byte_code_program t (execute_byte_code_instruction_v0 h s))
   end.
 
-Lemma unfold_execute_byte_code_program_nil :
+Lemma unfold_execute_byte_code_program_bc :
   forall s : data_stack,
     execute_byte_code_program nil s = s.
 Proof.
   unfold_tactic execute_byte_code_program.
 Qed.
 
-Lemma unfold_execute_byte_code_program_single_instr :
-  forall (h : byte_code_instruction) (s : data_stack),
-    execute_byte_code_program (h :: nil) s = (execute_byte_code_instruction_v0 h s).
-Proof.
-  unfold_tactic execute_byte_code_program.
-Qed.
-
-Lemma unfold_execute_byte_code_program_list_of_instr :
+Lemma unfold_execute_byte_code_program_ic :
   forall (h : byte_code_instruction) (t : byte_code_program) (s : data_stack),
     execute_byte_code_program (h :: t) s = (execute_byte_code_program t (execute_byte_code_instruction_v0 h s)).
 Proof.
