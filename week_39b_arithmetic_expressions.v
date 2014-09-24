@@ -8,11 +8,7 @@
 
 (* ********** *)
 
-<<<<<<< HEAD
 Require Import Arith Bool unfold_tactic List.
-=======
-Require Import Arith Bool unfold_tactic.
->>>>>>> FETCH_HEAD
 
 (* ********** *)
 
@@ -27,7 +23,6 @@ Inductive arithmetic_expression : Type :=
    Write samples of arithmetic expressions.
 *)
 
-<<<<<<< HEAD
 Definition ae_0 :=
   Lit 42.
 
@@ -40,8 +35,6 @@ Definition ae_2 :=
              (Lit 20))
        (Lit 3).
 
-=======
->>>>>>> FETCH_HEAD
 (* ********** *)
 
 Definition specification_of_interpret (interpret : arithmetic_expression -> nat) :=
@@ -58,7 +51,6 @@ Definition specification_of_interpret (interpret : arithmetic_expression -> nat)
    Write unit tests.
 *)
 
-<<<<<<< HEAD
 Notation "A =n= B" := (beq_nat A B) (at level 70, right associativity).
 
 Definition unit_tests_for_arithmetic_expressions (candidate : arithmetic_expression -> nat) :=
@@ -68,15 +60,12 @@ Definition unit_tests_for_arithmetic_expressions (candidate : arithmetic_express
     &&
     (candidate ae_2 =n= 90).
 
-=======
->>>>>>> FETCH_HEAD
 (* Exercise 2:
    Define an interpreter as a function
    that satisfies the specification above
    and verify that it passes the unit tests.
 *)
 
-<<<<<<< HEAD
 Fixpoint interpreter (e : arithmetic_expression) : nat :=
   match e with
     | Lit n => n
@@ -128,8 +117,6 @@ Proof.
   exact unfold_interpreter_times.
 Qed.
 
-=======
->>>>>>> FETCH_HEAD
 (* Byte-code instructions: *)
 
 Inductive byte_code_instruction : Type :=
@@ -170,7 +157,6 @@ Definition data_stack := list nat.
    For now, if the stack underflows, just assume it contains zeroes.
 *)
 
-<<<<<<< HEAD
 Definition ae_4 :=
   PUSH 4.
 
@@ -241,8 +227,6 @@ Definition execute_byte_code_instruction_v0 (instr : byte_code_instruction) (s :
 
 
 
-=======
->>>>>>> FETCH_HEAD
 (* ********** *)
 
 (* Exercise 4:
@@ -252,13 +236,7 @@ Definition execute_byte_code_instruction_v0 (instr : byte_code_instruction) (s :
    and returns this stack after the program is executed.
 *)
 
-<<<<<<< HEAD
-Fixpoint execute_byte_code_program (program : byte_code_program) (s : data_stack) : data_stack :=
-  match program with
-    | 
 
-=======
->>>>>>> FETCH_HEAD
 (* ********** *)
 
 (* Exercise 5:
@@ -299,11 +277,8 @@ Definition specification_of_compile (compile : arithmetic_expression -> byte_cod
    Prove that interpreting an arithmetic expression gives the same result
    as first compiling it and then executing the compiled program
    over an empty data stack.
-<<<<<<< HEAD
 
    by structural induction in the arithmetic expression???
-=======
->>>>>>> FETCH_HEAD
 *)
 
 (* ********** *)
