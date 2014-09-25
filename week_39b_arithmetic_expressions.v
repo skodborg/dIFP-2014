@@ -66,6 +66,32 @@ Definition unit_tests_for_arithmetic_expressions (candidate : arithmetic_express
    and verify that it passes the unit tests.
 *)
 
+Proposition there_is_only_one_interpret_arithmetic_expression :
+  forall interpret1 interpret2 : arithmetic_expression -> nat,
+    specification_of_interpret interpret1 ->
+    specification_of_interpret interpret2 ->
+    forall ae : arithmetic_expression,
+      interpret1 ae = interpret2 ae.
+Proof.
+  intros interpret1 interpret2.
+  intros [S_interpret1_lit [S_interpret1_plus S_interpret1_times]].
+  intros [S_interpret2_lit [S_interpret2_plus S_interpret2_times]].
+  intro ae.
+  induction ae as [ | ae1 IHae1 | ae2 IHae2].
+      rewrite -> S_interpret2_lit.
+      apply S_interpret1_lit.
+
+    rewrite -> S_interpret2_plus.
+    rewrite <- IHae1.
+    rewrite <- IHae2.
+    apply S_interpret1_plus.
+
+  rewrite -> S_interpret2_times.
+  rewrite <- IHae1.
+  rewrite <- IHae2.
+  apply S_interpret1_times.
+Qed.
+
 Fixpoint interpreter (e : arithmetic_expression) : nat :=
   match e with
     | Lit n => n
@@ -178,23 +204,39 @@ Definition specification_of_execute_byte_code_instruction (execute : byte_code_i
       end).
 
 Proposition there_is_only_one_execute_byte_code_instruction :
-  forall f g : byte_code_instruction -> data_stack -> data_stack,
-    specification_of_execute_byte_code_instruction f ->
-    specification_of_execute_byte_code_instruction g ->
-    forall (b : byte_code_instruction) (s : data_stack),
-      (f b s) = (g b s).
+  forall execute1 execute2 : byte_code_instruction -> data_stack -> data_stack,
+    specification_of_execute_byte_code_instruction execute1 ->
+    specification_of_execute_byte_code_instruction execute2 ->
+    forall (bc : byte_code_instruction) (s : data_stack),
+      execute1 bc s = execute2 bc s.
 Proof.
-  intros f g.
-  unfold specification_of_execute_byte_code_instruction.
-  intros [S_f_push [S_f_add S_f_mul]].
-  intros [S_g_push [S_g_add S_g_mul]].
-  intros b s.
-  case b as [ | | ].
-      rewrite S_g_push.
-      exact (S_f_push n s).
+  intros execute1 execute2.
+  intros [S_execute1_push [S_execute1_add S_execute1_mul]].
+  intros [S_execute2_push [S_execute2_add S_execute2_mul]].
+  intros bc s.
+  assert (a := 0).
+  induction bc.
+      rewrite -> S_execute2_push.
+      apply S_execute1_push.
 
-    Abort.
+    rewrite -> (S_execute2_add a a).
+    apply (S_execute1_add a a).
 
+  rewrite -> (S_execute2_mul a a).
+  apply (S_execute1_mul a a).
+Qed.
+
+Require Import week_37b_lists_Skodborg_Marc_Simonsen_Michael_Madsen_Stefan.
+
+Definition unit_tests_for_byte_code_instruction (candidate : byte_code_instruction -> data_stack -> data_stack) :=
+  (equal_list_nat (candidate (PUSH 5) nil) 
+                  (5 :: nil))
+  &&
+  (equal_list_nat (candidate ADD (2 :: 4 :: nil)) 
+                  (6 :: nil))
+  &&
+  (equal_list_nat (candidate MUL (2 :: 4 :: nil)) 
+                  (8 :: nil)).
 
 (* IKKE FIXPOINT da funktionen ikke er rekursiv (det er en straight-line interpreter, rekursion er ubrugelig) *)
 Definition execute_byte_code_instruction (instr : byte_code_instruction) (s : data_stack) : data_stack :=
@@ -243,10 +285,10 @@ Proof.
   unfold_tactic execute_byte_code_instruction.
 Qed.
 
-
-
 Definition execute_byte_code_instruction_v0 (instr : byte_code_instruction) (s : data_stack) : data_stack :=
   execute_byte_code_instruction instr s.
+
+Compute unit_tests_for_byte_code_instruction execute_byte_code_instruction_v0.
 
 Proposition execute_byte_code_satisfies_the_specification_of_execute_byte_code_instruction :
   specification_of_execute_byte_code_instruction execute_byte_code_instruction_v0.
@@ -273,6 +315,13 @@ Qed.
    and returns this stack after the program is executed.
 *)
 
+Require Import week_37b_lists_Skodborg_Marc_Simonsen_Michael_Madsen_Stefan.
+
+(*
+Definition specification_of_execute_byte_code_program (execute : byte_code_program -> data_stack -> data_stack) :=
+  (forall (prog : byte_code_program) (s : data_stack),
+    map_v1 byte_code_program data_stack execute_byte_code_instruction_v0 prog).
+*)
 
 Definition specification_of_execute_byte_code_program (execute : byte_code_program -> data_stack -> data_stack) :=
   (forall (s : data_stack),
@@ -281,6 +330,39 @@ Definition specification_of_execute_byte_code_program (execute : byte_code_progr
   (forall (instr : byte_code_instruction) (prog : byte_code_program) (s : data_stack),
      execute (instr :: prog) s = (execute prog (execute_byte_code_instruction_v0 instr s))).
 
+Definition unit_tests_for_byte_code_program (candidate : byte_code_program -> data_stack -> data_stack) :=
+  (equal_list_nat (candidate (PUSH 5 :: PUSH 5 :: nil) nil) 
+                  (5 :: 5 :: nil))
+  &&
+  (equal_list_nat (candidate (PUSH 5 :: PUSH 5 :: ADD :: nil) nil) 
+                  (10 :: nil))
+  &&
+  (equal_list_nat (candidate (PUSH 5 :: PUSH 5 :: MUL :: nil) nil) 
+                  (25 :: nil))
+  &&
+  (equal_list_nat (candidate (PUSH 5 :: PUSH 5 :: PUSH 5 :: MUL :: ADD :: nil) nil) 
+                  (30 :: nil)).
+
+Proposition there_is_only_one_execute_byte_code_program :
+  forall execute1 execute2 : byte_code_program -> data_stack -> data_stack,
+    specification_of_execute_byte_code_program execute1 ->
+    specification_of_execute_byte_code_program execute2 ->
+    forall (p : byte_code_program) (s : data_stack),
+      execute1 p s = execute2 p s.
+Proof.
+  intros execute1 execute2.
+  intros [S_execute1_bc S_execute1_ic] [S_execute2_bc S_execute2_ic].
+  intros p.
+  induction p as [ | p' ps' IHps'].
+    intro s.
+    rewrite -> S_execute2_bc.
+    apply S_execute1_bc.
+
+  intro s.
+  rewrite -> S_execute2_ic.
+  rewrite <- IHps'.
+  apply S_execute1_ic.
+Qed.
 
 Fixpoint execute_byte_code_program (prog : byte_code_program) (s : data_stack) : data_stack :=
   match prog with
@@ -305,6 +387,8 @@ Qed.
 Definition execute_byte_code_program_v0 (prog : byte_code_program) (s : data_stack) : data_stack :=
   execute_byte_code_program prog s.
 
+Compute unit_tests_for_byte_code_program execute_byte_code_program_v0.
+
 Proposition execute_byte_code_program_satisfies_the_specification :
   specification_of_execute_byte_code_program execute_byte_code_program_v0.           
 Proof.
@@ -326,35 +410,28 @@ Qed.
    (2) executing p2 with the resulting stack.
 *)
 
-Require Import week_37b_lists_Skodborg_Marc_Simonsen_Michael_Madsen_Stefan.
-
 Proposition about_execute_byte_code_program :
   forall (execute : byte_code_program -> data_stack -> data_stack),
     specification_of_execute_byte_code_program execute ->
     forall (p1 p2 : byte_code_program) (s : data_stack),
       execute (p1 ++ p2) s = execute p2 (execute p1 s).
 Proof.
-  intro exec.
-  intro S_exec.
-  intros p1 p2 s.
-  unfold specification_of_execute_byte_code_program in S_exec.
-  destruct S_exec as [S_exec_bc S_exec_ic].
-  induction p1 as [ | p1 p1' IHp' ].
-    rewrite S_exec_bc.
-    Search (_ ++ _ = _).
-    rewrite (app_nil_l p2).
+  intros execute.
+  intros [S_execute_bc S_execute_ic].
+  intros p1.
+  induction p1 as [ | p1' p1s' IHp1s' ].
+    intros p2 s.
+    rewrite -> S_execute_bc.
+    rewrite -> app_nil_l.
     reflexivity.
 
-  induction p2 as [ | p2 p2' IHp''].
-    rewrite S_exec_bc.
-    rewrite (app_nil_r (p1 ::p1')).
-    reflexivity.
-
-
-
-
-
-
+  intros p2 s.
+  rewrite -> S_execute_ic.
+  rewrite <- IHp1s'.
+  rewrite <- app_comm_cons.
+  rewrite -> S_execute_ic.
+  reflexivity.
+Qed.
 
 (* ********** *)
 
