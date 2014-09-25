@@ -177,6 +177,25 @@ Definition specification_of_execute_byte_code_instruction (execute : byte_code_i
         | (nil) => (0 :: nil)
       end).
 
+Proposition there_is_only_one_execute_byte_code_instruction :
+  forall f g : byte_code_instruction -> data_stack -> data_stack,
+    specification_of_execute_byte_code_instruction f ->
+    specification_of_execute_byte_code_instruction g ->
+    forall (b : byte_code_instruction) (s : data_stack),
+      (f b s) = (g b s).
+Proof.
+  intros f g.
+  unfold specification_of_execute_byte_code_instruction.
+  intros [S_f_push [S_f_add S_f_mul]].
+  intros [S_g_push [S_g_add S_g_mul]].
+  intros b s.
+  case b as [ | | ].
+      rewrite S_g_push.
+      exact (S_f_push n s).
+
+    Abort.
+
+
 (* IKKE FIXPOINT da funktionen ikke er rekursiv (det er en straight-line interpreter, rekursion er ubrugelig) *)
 Definition execute_byte_code_instruction (instr : byte_code_instruction) (s : data_stack) : data_stack :=
   match instr with
@@ -254,16 +273,6 @@ Qed.
    and returns this stack after the program is executed.
 *)
 
-Require Import week_37b_lists_Skodborg_Marc_Simonsen_Michael_Madsen_Stefan.
-
-(*
-Definition specification_of_execute_byte_code_program (execute : byte_code_program -> data_stack -> data_stack) :=
-  (forall (prog : byte_code_program) (s : data_stack),
-    map_v1 byte_code_program data_stack execute_byte_code_instruction_v0 prog).
-*)
-
-
-
 
 Definition specification_of_execute_byte_code_program (execute : byte_code_program -> data_stack -> data_stack) :=
   (forall (s : data_stack),
@@ -271,7 +280,6 @@ Definition specification_of_execute_byte_code_program (execute : byte_code_progr
   /\
   (forall (instr : byte_code_instruction) (prog : byte_code_program) (s : data_stack),
      execute (instr :: prog) s = (execute prog (execute_byte_code_instruction_v0 instr s))).
-
 
 
 Fixpoint execute_byte_code_program (prog : byte_code_program) (s : data_stack) : data_stack :=
@@ -317,6 +325,36 @@ Qed.
    (1) executing p1 with s, and then
    (2) executing p2 with the resulting stack.
 *)
+
+Require Import week_37b_lists_Skodborg_Marc_Simonsen_Michael_Madsen_Stefan.
+
+Proposition about_execute_byte_code_program :
+  forall (execute : byte_code_program -> data_stack -> data_stack),
+    specification_of_execute_byte_code_program execute ->
+    forall (p1 p2 : byte_code_program) (s : data_stack),
+      execute (p1 ++ p2) s = execute p2 (execute p1 s).
+Proof.
+  intro exec.
+  intro S_exec.
+  intros p1 p2 s.
+  unfold specification_of_execute_byte_code_program in S_exec.
+  destruct S_exec as [S_exec_bc S_exec_ic].
+  induction p1 as [ | p1 p1' IHp' ].
+    rewrite S_exec_bc.
+    Search (_ ++ _ = _).
+    rewrite (app_nil_l p2).
+    reflexivity.
+
+  induction p2 as [ | p2 p2' IHp''].
+    rewrite S_exec_bc.
+    rewrite (app_nil_r (p1 ::p1')).
+    reflexivity.
+
+
+
+
+
+
 
 (* ********** *)
 
