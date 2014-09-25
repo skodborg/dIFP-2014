@@ -451,12 +451,90 @@ Definition specification_of_compile (compile : arithmetic_expression -> byte_cod
    and uses list concatenation, i.e., ++.
 *)
 
+Proposition there_is_only_one_compile :
+  forall compile1 compile2 : arithmetic_expression -> byte_code_program,
+    specification_of_compile compile1 ->
+    specification_of_compile compile2 ->
+    forall (ae : arithmetic_expression),
+      compile1 ae = compile2 ae.
+Proof.
+  intros compile1 compile2.
+  unfold specification_of_compile.
+  intros [S_compile1_lit [S_compile1_plus S_compile1_times]].
+  intros [S_compile2_lit [S_compile2_plus S_compile2_times]].
+  intro ae.
+  induction ae as [ | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
+      rewrite S_compile2_lit.
+      exact (S_compile1_lit n).
+    rewrite S_compile2_plus.
+    rewrite <- IHae1'.
+    rewrite <- IHae2'.
+    exact (S_compile1_plus ae1' ae2').
+  rewrite S_compile2_times.
+  rewrite <- IHae1''.
+  rewrite <- IHae2''.
+  exact (S_compile1_times ae1'' ae2'').
+Qed.
+
+Fixpoint compile (ae : arithmetic_expression) : byte_code_program :=
+  match ae with
+    | Lit n => ((PUSH n) :: nil)
+    | Plus ae1 ae2 => (compile ae1) ++ (compile ae2) ++ (ADD :: nil)
+    | Times ae1 ae2 => (compile ae1) ++ (compile ae2) ++ (MUL :: nil)
+  end.
+
+Lemma unfold_compile_lit :
+  forall n : nat,
+    compile (Lit n) = ((PUSH n) :: nil).
+Proof.
+  unfold_tactic compile.
+Qed.
+
+Lemma unfold_compile_plus :
+  forall ae1 ae2 : arithmetic_expression,
+    compile (Plus ae1 ae2) = (compile ae1) ++ (compile ae2) ++ (ADD :: nil).
+Proof.  
+  unfold_tactic compile.
+Qed.
+
+Lemma unfold_compile_times :
+  forall ae1 ae2 : arithmetic_expression,
+    compile (Times ae1 ae2) = (compile ae1) ++ (compile ae2) ++ (MUL :: nil).
+Proof.  
+  unfold_tactic compile.
+Qed.
+
+Definition compile_v0 (ae : arithmetic_expression) : byte_code_program :=
+  compile ae.
+
+
+Proposition compile_v0_satisfies_the_specification_of_compile :
+  specification_of_compile compile_v0.
+Proof.
+  unfold specification_of_compile.
+  unfold compile_v0.
+  split.
+    exact unfold_compile_lit.
+  split.
+    exact unfold_compile_plus.
+  exact unfold_compile_times.
+Qed.
+
 (* Exercise 7:
    Write a compiler as a function with an accumulator
    that does not use ++ but :: instead,
    and prove it equivalent to the compiler of Exercise 6.
 *)
 
+Fixpoint compile_acc (ae : arithmetic_expression) (acc : byte_code_program) : byte_code_program :=
+  match ae with
+    | Lit n => ((PUSH n) :: acc)
+    | Plus ae1 ae2 => compile_acc ae1 (compile_acc ae2 (ADD :: acc))
+    | Times ae1 ae2 => compile_acc ae1 (compile_acc ae2 (MUL :: acc))
+  end.
+
+Definition compile_v1 (ae : arithmetic_expression) : byte_code_program :=
+  compile_acc ae nil.
 (* ********** *)
 
 (* Exercise 8:
