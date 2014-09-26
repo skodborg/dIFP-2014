@@ -533,8 +533,92 @@ Fixpoint compile_acc (ae : arithmetic_expression) (acc : byte_code_program) : by
     | Times ae1 ae2 => compile_acc ae1 (compile_acc ae2 (MUL :: acc))
   end.
 
+Lemma unfold_compile_acc_lit :
+  forall (n : nat) (acc : byte_code_program),
+    compile_acc (Lit n) acc = ((PUSH n) :: acc).
+Proof.
+  unfold_tactic compile_acc.
+Qed.
+
+Lemma unfold_compile_acc_plus :
+  forall (ae1 ae2 : arithmetic_expression) (acc : byte_code_program),
+    compile_acc (Plus ae1 ae2) acc = compile_acc ae1 (compile_acc ae2 (ADD :: acc)).
+Proof.  
+  unfold_tactic compile_acc.
+Qed.
+
+Lemma unfold_compile_acc_times :
+  forall (ae1 ae2 : arithmetic_expression) (acc :byte_code_program),
+    compile_acc (Times ae1 ae2) acc = compile_acc ae1 (compile_acc ae2 (MUL :: acc)).
+Proof.  
+  unfold_tactic compile_acc.
+Qed.
+
 Definition compile_v1 (ae : arithmetic_expression) : byte_code_program :=
   compile_acc ae nil.
+
+Proposition about_compile_acc :
+    forall (ae : arithmetic_expression) (acc : byte_code_program),
+      compile_acc ae acc = (compile_acc ae nil) ++ acc.
+Proof.
+  intro ae.
+  induction ae as [ | ae1' IHae1' ae2' IHae2'' | ae1'' IHae1'' ae2'' IHae2'' ].
+      intro acc.
+      rewrite ->2 unfold_compile_acc_lit.
+      rewrite <- app_comm_cons.
+      rewrite app_nil_l.
+      reflexivity.
+
+    intro acc.
+    rewrite ->2 unfold_compile_acc_plus.
+    rewrite IHae1'.
+    rewrite (IHae1' (compile_acc ae2' (ADD :: nil))).
+    rewrite IHae2''.
+    rewrite (IHae2'' (ADD :: nil)).
+    rewrite <- (app_assoc (compile_acc ae1' nil) (compile_acc ae2' nil ++ ADD :: nil) acc).
+    rewrite <- (app_assoc (compile_acc ae2' nil) (ADD :: nil) acc).
+    rewrite <- (app_comm_cons nil acc ADD).
+    rewrite app_nil_l.
+    reflexivity.
+
+  intro acc.
+  rewrite ->2 unfold_compile_acc_times.
+  rewrite IHae1''.
+  rewrite (IHae1'' (compile_acc ae2'' (MUL :: nil))).
+  rewrite IHae2''.
+  rewrite (IHae2'' (MUL :: nil)).
+  rewrite <- (app_assoc (compile_acc ae1'' nil) (compile_acc ae2'' nil ++ MUL :: nil) acc).
+  rewrite <- (app_assoc (compile_acc ae2'' nil) (MUL :: nil) acc).
+  rewrite <- (app_comm_cons nil acc MUL).
+  rewrite app_nil_l.
+  reflexivity.
+Qed.
+
+Proposition compile_v1_satisfies_the_specification_of_compile :
+  specification_of_compile compile_v1.
+Proof.
+  unfold specification_of_compile.
+  unfold compile_v1.
+  split.
+    intro n.
+    apply unfold_compile_acc_lit.
+  split.
+    intros ae1 ae2.
+    rewrite -> unfold_compile_acc_plus.
+    rewrite <- about_compile_acc.
+    rewrite <- about_compile_acc.
+    reflexivity.
+
+  intros ae1 ae2.
+  rewrite -> unfold_compile_acc_times.
+  rewrite <- about_compile_acc.
+  rewrite <- about_compile_acc.
+  reflexivity.
+Qed.
+
+
+
+
 (* ********** *)
 
 (* Exercise 8:
