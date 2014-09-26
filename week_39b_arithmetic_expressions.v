@@ -17,7 +17,8 @@ Require Import Arith Bool unfold_tactic List.
 Inductive arithmetic_expression : Type :=
   | Lit : nat -> arithmetic_expression
   | Plus : arithmetic_expression -> arithmetic_expression -> arithmetic_expression
-  | Times : arithmetic_expression -> arithmetic_expression -> arithmetic_expression.
+  | Times : arithmetic_expression -> arithmetic_expression -> arithmetic_expression
+  | Minus : arithmetic_expression -> arithmetic_expression -> arithmetic_expression.
 
 (* Exercise 0:
    Write samples of arithmetic expressions.
@@ -35,6 +36,10 @@ Definition ae_2 :=
              (Lit 20))
        (Lit 3).
 
+Definition ae_3 :=
+  Minus (Lit 30)
+        (Lit 10).
+
 (* ********** *)
 
 Definition specification_of_interpret (interpret : arithmetic_expression -> nat) :=
@@ -45,7 +50,10 @@ Definition specification_of_interpret (interpret : arithmetic_expression -> nat)
      interpret (Plus ae1 ae2) = (interpret ae1) + (interpret ae2))
   /\
   (forall ae1 ae2 : arithmetic_expression,
-     interpret (Times ae1 ae2) = (interpret ae1) * (interpret ae2)).
+     interpret (Times ae1 ae2) = (interpret ae1) * (interpret ae2))
+  /\
+  (forall ae1 ae2 : arithmetic_expression,
+     interpret (Minus ae1 ae2) = (interpret ae1) - (interpret ae2)).
 
 (* Exercise 1:
    Write unit tests.
@@ -58,7 +66,9 @@ Definition unit_tests_for_arithmetic_expressions (candidate : arithmetic_express
     &&
     (candidate ae_1 =n= 30)
     &&
-    (candidate ae_2 =n= 90).
+    (candidate ae_2 =n= 90)
+    &&
+    (candidate ae_3 =n= 20).
 
 (* Exercise 2:
    Define an interpreter as a function
@@ -74,22 +84,28 @@ Proposition there_is_only_one_interpret_arithmetic_expression :
       interpret1 ae = interpret2 ae.
 Proof.
   intros interpret1 interpret2.
-  intros [S_interpret1_lit [S_interpret1_plus S_interpret1_times]].
-  intros [S_interpret2_lit [S_interpret2_plus S_interpret2_times]].
+  unfold specification_of_interpret.
+  intros [S_interpret1_lit [S_interpret1_plus [S_interpret1_times S_interpret1_minus]]].
+  intros [S_interpret2_lit [S_interpret2_plus [S_interpret2_times S_interpret2_minus]]].
   intro ae.
-  induction ae as [ | ae1 IHae1 | ae2 IHae2].
-      rewrite -> S_interpret2_lit.
-      apply S_interpret1_lit.
+  induction ae as [ | ae1 IHae1 | ae2 IHae2 | ae3 IHae3].
+        rewrite -> S_interpret2_lit.
+        apply S_interpret1_lit.
 
-    rewrite -> S_interpret2_plus.
+      rewrite -> S_interpret2_plus.
+      rewrite <- IHae1.
+      rewrite <- IHae2.
+      apply S_interpret1_plus.
+
+    rewrite -> S_interpret2_times.
     rewrite <- IHae1.
     rewrite <- IHae2.
-    apply S_interpret1_plus.
+    apply S_interpret1_times.
 
-  rewrite -> S_interpret2_times.
+  rewrite -> S_interpret2_minus.
   rewrite <- IHae1.
-  rewrite <- IHae2.
-  apply S_interpret1_times.
+  rewrite <- IHae3.
+  apply S_interpret1_minus.
 Qed.
 
 Fixpoint interpreter (e : arithmetic_expression) : nat :=
@@ -97,6 +113,7 @@ Fixpoint interpreter (e : arithmetic_expression) : nat :=
     | Lit n => n
     | Plus e1 e2 => (interpreter e1) + (interpreter e2)
     | Times e1 e2 => (interpreter e1) * (interpreter e2)
+    | Minus e1 e2 => (interpreter e1) - (interpreter e2)
   end.
 
 Lemma unfold_interpreter_lit :
@@ -120,6 +137,12 @@ Proof.
   unfold_tactic interpreter.
 Qed.
 
+Lemma unfold_interpreter_minus :
+  forall e1 e2 : arithmetic_expression,
+    interpreter (Minus e1 e2) = (interpreter e1) - (interpreter e2).
+Proof.
+  unfold_tactic interpreter.
+Qed.
 
 Definition interpreter_v0 (e : arithmetic_expression) : nat :=
   interpreter e.
@@ -140,7 +163,10 @@ Proof.
 
     exact unfold_interpreter_plus.
 
-  exact unfold_interpreter_times.
+  split.
+    exact unfold_interpreter_times.
+
+  exact unfold_interpreter_minus.
 Qed.
 
 (* Byte-code instructions: *)
@@ -148,7 +174,9 @@ Qed.
 Inductive byte_code_instruction : Type :=
   | PUSH : nat -> byte_code_instruction
   | ADD : byte_code_instruction
-  | MUL : byte_code_instruction.
+  | MUL : byte_code_instruction
+  | SUB : byte_code_instruction.
+
 
 (* ********** *)
 
@@ -191,14 +219,21 @@ Definition specification_of_execute_byte_code_instruction (execute : byte_code_i
   /\
   (forall (n1 n2 : nat) (s : data_stack),
      execute ADD s = match s with
-        | (n1 :: n2 :: s) => ((n1 + n2) :: s)
+        | (n1 :: n2 :: s) => ((n2 + n1) :: s)
         | (n1 :: nil) => (n1 :: nil)
         | (nil) => (0 :: nil)
       end)
   /\
   (forall (n1 n2 : nat) (s : data_stack),
      execute MUL s = match s with
-        | (n1 :: n2 :: s) => ((n1 * n2) :: s)
+        | (n1 :: n2 :: s) => ((n2 * n1) :: s)
+        | (n1 :: nil) => (0 :: nil)
+        | (nil) => (0 :: nil)
+      end)
+  /\
+  (forall (n1 n2 : nat) (s : data_stack),
+     execute SUB s = match s with
+        | (n1 :: n2 :: s) => ((n2 - n1) :: s)
         | (n1 :: nil) => (0 :: nil)
         | (nil) => (0 :: nil)
       end).
@@ -211,8 +246,8 @@ Proposition there_is_only_one_execute_byte_code_instruction :
       execute1 bc s = execute2 bc s.
 Proof.
   intros execute1 execute2.
-  intros [S_execute1_push [S_execute1_add S_execute1_mul]].
-  intros [S_execute2_push [S_execute2_add S_execute2_mul]].
+  intros [S_execute1_push [S_execute1_add [S_execute1_mul S_execute1_sub]]].
+  intros [S_execute2_push [S_execute2_add [S_execute2_mul S_execute2_sub]]].
   intros bc s.
   assert (a := 0).
   induction bc.
@@ -224,6 +259,9 @@ Proof.
 
   rewrite -> (S_execute2_mul a a).
   apply (S_execute1_mul a a).
+
+  rewrite -> (S_execute2_sub a a).
+  apply (S_execute1_sub a a).
 Qed.
 
 Require Import week_37b_lists_Skodborg_Marc_Simonsen_Michael_Madsen_Stefan.
@@ -236,7 +274,10 @@ Definition unit_tests_for_byte_code_instruction (candidate : byte_code_instructi
                   (6 :: nil))
   &&
   (equal_list_nat (candidate MUL (2 :: 4 :: nil)) 
-                  (8 :: nil)).
+                  (8 :: nil))
+  &&
+  (equal_list_nat (candidate SUB (5 :: 20 :: nil)) 
+                  (15 :: nil)).
 
 (* IKKE FIXPOINT da funktionen ikke er rekursiv (det er en straight-line interpreter, rekursion er ubrugelig) *)
 Definition execute_byte_code_instruction (instr : byte_code_instruction) (s : data_stack) : data_stack :=
@@ -244,13 +285,19 @@ Definition execute_byte_code_instruction (instr : byte_code_instruction) (s : da
     | (PUSH n) => (n :: s)
     | ADD =>
       match s with
-        | (n1 :: n2 :: t) => ((n1 + n2) :: t)
+        | (n1 :: n2 :: t) => ((n2 + n1) :: t)
         | (n1 :: nil) => (n1 :: nil)
         | (nil) => (0 :: nil)
       end
     | MUL =>
       match s with
-        | (n1 :: n2 :: t) => ((n1 * n2) :: t)
+        | (n1 :: n2 :: t) => ((n2 * n1) :: t)
+        | (n1 :: nil) => (0 :: nil)
+        | (nil) => (0 :: nil)
+      end
+    | SUB =>
+      match s with
+        | (n1 :: n2 :: t) => ((n2 - n1) :: t)
         | (n1 :: nil) => (0 :: nil)
         | (nil) => (0 :: nil)
       end
@@ -266,7 +313,7 @@ Qed.
 Lemma unfold_execute_byte_code_instruction_add :
   forall (s : data_stack),
     execute_byte_code_instruction ADD s = match s with
-                                            | (n1 :: n2 :: t) => ((n1 + n2) :: t)
+                                            | (n1 :: n2 :: t) => ((n2 + n1) :: t)
                                             | (n1 :: nil) => (n1 :: nil)
                                             | (nil) => (0 :: nil)
                                           end.
@@ -277,7 +324,18 @@ Qed.
 Lemma unfold_execute_byte_code_instruction_mul :
   forall (s : data_stack),
     execute_byte_code_instruction MUL s = match s with
-                                            | (n1 :: n2 :: t) => ((n1 * n2) :: t)
+                                            | (n1 :: n2 :: t) => ((n2 * n1) :: t)
+                                            | (n1 :: nil) => (0 :: nil)
+                                            | (nil) => (0 :: nil)
+                                          end.
+Proof.                                                                                                              
+  unfold_tactic execute_byte_code_instruction.
+Qed.
+
+Lemma unfold_execute_byte_code_instruction_sub :
+  forall (s : data_stack),
+    execute_byte_code_instruction SUB s = match s with
+                                            | (n1 :: n2 :: t) => ((n2 - n1) :: t)
                                             | (n1 :: nil) => (0 :: nil)
                                             | (nil) => (0 :: nil)
                                           end.
@@ -302,8 +360,12 @@ Proof.
     intros n1 n2.
     exact unfold_execute_byte_code_instruction_add.
 
+  split.
+    intros n1 n2.
+    exact unfold_execute_byte_code_instruction_mul.
+
   intros n1 n2.
-  exact unfold_execute_byte_code_instruction_mul.
+  exact unfold_execute_byte_code_instruction_sub.
 Qed.
 
 (* ********** *)
@@ -341,7 +403,10 @@ Definition unit_tests_for_byte_code_program (candidate : byte_code_program -> da
                   (25 :: nil))
   &&
   (equal_list_nat (candidate (PUSH 5 :: PUSH 5 :: PUSH 5 :: MUL :: ADD :: nil) nil) 
-                  (30 :: nil)).
+                  (30 :: nil))
+  &&
+  (equal_list_nat (candidate (PUSH 20 :: PUSH 5 :: SUB :: nil) nil)
+                  (15 :: nil)).
 
 Proposition there_is_only_one_execute_byte_code_program :
   forall execute1 execute2 : byte_code_program -> data_stack -> data_stack,
@@ -383,6 +448,7 @@ Lemma unfold_execute_byte_code_program_ic :
 Proof.
   unfold_tactic execute_byte_code_program.
 Qed.
+
 
 Definition execute_byte_code_program_v0 (prog : byte_code_program) (s : data_stack) : data_stack :=
   execute_byte_code_program prog s.
@@ -443,7 +509,10 @@ Definition specification_of_compile (compile : arithmetic_expression -> byte_cod
      compile (Plus ae1 ae2) = (compile ae1) ++ (compile ae2) ++ (ADD :: nil))
   /\
   (forall ae1 ae2 : arithmetic_expression,
-     compile (Times ae1 ae2) = (compile ae1) ++ (compile ae2)++ (MUL :: nil)).
+     compile (Times ae1 ae2) = (compile ae1) ++ (compile ae2)++ (MUL :: nil))
+  /\
+  (forall ae1 ae2 : arithmetic_expression,
+     compile (Minus ae1 ae2) = (compile ae1) ++ (compile ae2)++ (SUB :: nil)).
 
 (* Exercise 6:
    Define a compiler as a function
@@ -460,20 +529,24 @@ Proposition there_is_only_one_compile :
 Proof.
   intros compile1 compile2.
   unfold specification_of_compile.
-  intros [S_compile1_lit [S_compile1_plus S_compile1_times]].
-  intros [S_compile2_lit [S_compile2_plus S_compile2_times]].
+  intros [S_compile1_lit [S_compile1_plus [S_compile1_times S_compile1_minus]]].
+  intros [S_compile2_lit [S_compile2_plus [S_compile2_times S_compile2_minus]]].
   intro ae.
-  induction ae as [ | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
-      rewrite S_compile2_lit.
-      exact (S_compile1_lit n).
-    rewrite S_compile2_plus.
-    rewrite <- IHae1'.
-    rewrite <- IHae2'.
-    exact (S_compile1_plus ae1' ae2').
-  rewrite S_compile2_times.
-  rewrite <- IHae1''.
-  rewrite <- IHae2''.
-  exact (S_compile1_times ae1'' ae2'').
+  induction ae as [ | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2'' | ae1''' IHae1''' ae2''' IHae2''' ].
+        rewrite S_compile2_lit.
+        exact (S_compile1_lit n).
+      rewrite S_compile2_plus.
+      rewrite <- IHae1'.
+      rewrite <- IHae2'.
+      exact (S_compile1_plus ae1' ae2').
+    rewrite S_compile2_times.
+    rewrite <- IHae1''.
+    rewrite <- IHae2''.
+    exact (S_compile1_times ae1'' ae2'').
+  rewrite S_compile2_minus.
+  rewrite <- IHae1'''.
+  rewrite <- IHae2'''.
+  exact (S_compile1_minus ae1''' ae2''').
 Qed.
 
 Fixpoint compile (ae : arithmetic_expression) : byte_code_program :=
@@ -481,6 +554,7 @@ Fixpoint compile (ae : arithmetic_expression) : byte_code_program :=
     | Lit n => ((PUSH n) :: nil)
     | Plus ae1 ae2 => (compile ae1) ++ (compile ae2) ++ (ADD :: nil)
     | Times ae1 ae2 => (compile ae1) ++ (compile ae2) ++ (MUL :: nil)
+    | Minus ae1 ae2 => (compile ae1) ++ (compile ae2) ++ (SUB :: nil)
   end.
 
 Lemma unfold_compile_lit :
@@ -504,6 +578,13 @@ Proof.
   unfold_tactic compile.
 Qed.
 
+Lemma unfold_compile_minus : 
+  forall ae1 ae2 : arithmetic_expression,
+    compile (Minus ae1 ae2) = (compile ae1) ++ (compile ae2) ++ (SUB :: nil).
+Proof.  
+  unfold_tactic compile.
+Qed.
+
 Definition compile_v0 (ae : arithmetic_expression) : byte_code_program :=
   compile ae.
 
@@ -517,7 +598,9 @@ Proof.
     exact unfold_compile_lit.
   split.
     exact unfold_compile_plus.
-  exact unfold_compile_times.
+  split.
+    exact unfold_compile_times.
+  exact unfold_compile_minus.
 Qed.
 
 (* Exercise 7:
@@ -531,6 +614,7 @@ Fixpoint compile_acc (ae : arithmetic_expression) (acc : byte_code_program) : by
     | Lit n => ((PUSH n) :: acc)
     | Plus ae1 ae2 => compile_acc ae1 (compile_acc ae2 (ADD :: acc))
     | Times ae1 ae2 => compile_acc ae1 (compile_acc ae2 (MUL :: acc))
+    | Minus ae1 ae2 => compile_acc ae1 (compile_acc ae2 (SUB :: acc))
   end.
 
 Lemma unfold_compile_acc_lit :
@@ -554,6 +638,13 @@ Proof.
   unfold_tactic compile_acc.
 Qed.
 
+Lemma unfold_compile_acc_minus :
+  forall (ae1 ae2 : arithmetic_expression) (acc :byte_code_program),
+    compile_acc (Minus ae1 ae2) acc = compile_acc ae1 (compile_acc ae2 (SUB :: acc)).
+Proof.  
+  unfold_tactic compile_acc.
+Qed.
+
 Definition compile_v1 (ae : arithmetic_expression) : byte_code_program :=
   compile_acc ae nil.
 
@@ -562,7 +653,7 @@ Proposition about_compile_acc :
       compile_acc ae acc = (compile_acc ae nil) ++ acc.
 Proof.
   intro ae.
-  induction ae as [ | ae1' IHae1' ae2' IHae2'' | ae1'' IHae1'' ae2'' IHae2'' ].
+  induction ae as [ | ae1' IHae1' ae2' IHae2'' | ae1'' IHae1'' ae2'' IHae2'' | ae1''' IHae1''' ae2''' IHae2''' ].
       intro acc.
       rewrite ->2 unfold_compile_acc_lit.
       rewrite <- app_comm_cons.
@@ -592,6 +683,18 @@ Proof.
   rewrite <- (app_comm_cons nil acc MUL).
   rewrite app_nil_l.
   reflexivity.
+
+  intro acc.
+  rewrite ->2 unfold_compile_acc_minus.
+  rewrite IHae1'''.
+  rewrite (IHae1''' (compile_acc ae2''' (SUB :: nil))).
+  rewrite IHae2'''.
+  rewrite (IHae2''' (SUB :: nil)).
+  rewrite <- (app_assoc (compile_acc ae1''' nil) (compile_acc ae2''' nil ++ SUB :: nil) acc).
+  rewrite <- (app_assoc (compile_acc ae2''' nil) (SUB :: nil) acc).
+  rewrite <- (app_comm_cons nil acc SUB).
+  rewrite app_nil_l.
+  reflexivity.
 Qed.
 
 Proposition compile_v1_satisfies_the_specification_of_compile :
@@ -609,8 +712,15 @@ Proof.
     rewrite <- about_compile_acc.
     reflexivity.
 
+  split.
+    intros ae1 ae2.
+    rewrite -> unfold_compile_acc_times.
+    rewrite <- about_compile_acc.
+    rewrite <- about_compile_acc.
+    reflexivity.
+
   intros ae1 ae2.
-  rewrite -> unfold_compile_acc_times.
+  rewrite -> unfold_compile_acc_minus.
   rewrite <- about_compile_acc.
   rewrite <- about_compile_acc.
   reflexivity.
@@ -629,29 +739,87 @@ Qed.
 
 (* returning the element in the datastack of execute_byte_code_program, if it only contains a single element *)
 Definition run (bcp: byte_code_program) : nat :=
-  match (execute_byte_code_program bcp nil) with
+  match (execute_byte_code_program_v0 bcp nil) with
     | x :: nil => x
     | _ => 0
   end.
 
-Proposition interpreting_equals_compile_and_executing :
-  forall (ae : arithmetic_expression),
-    interpreter_v0 ae = run (compile_v0 ae).
+
+
+Lemma interpret_equals_compile_and_execute :
+  forall (ae : arithmetic_expression) (s : data_stack),
+    execute_byte_code_program (compile_v0 ae) s  = (interpreter_v0 ae ) :: s.
 Proof.
   intro ae.
-  induction ae as [ | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2'].
-    unfold interpreter_v0.
-    unfold compile_v0.
-    rewrite unfold_interpreter_lit.
-    rewrite unfold_compile_lit.
-    unfold run.
-    rewrite (unfold_execute_byte_code_program_ic (PUSH n) nil nil).
-    rewrite unfold_execute_byte_code_program_bc.
-    unfold execute_byte_code_instruction_v0.
-    rewrite unfold_execute_byte_code_instruction_push.
-    reflexivity.
+  induction ae as [ | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
+        intro s.
+        unfold compile_v0.
+        rewrite unfold_compile_lit.
+        rewrite (unfold_execute_byte_code_program_ic (PUSH n) nil s).
+        rewrite unfold_execute_byte_code_program_bc.
+        unfold execute_byte_code_instruction_v0.
+        rewrite (unfold_execute_byte_code_instruction_push n s).
+        unfold interpreter_v0.
+        rewrite unfold_interpreter_lit.
+        reflexivity.
+      unfold compile_v0.
+      rewrite (unfold_compile_plus ae1 ae2).
+      intro s.
+      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae1) (compile ae2 ++ ADD :: nil) s).
+      rewrite IHae1.
+      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae2) (ADD :: nil) (interpreter_v0 ae1 :: s)).
+      rewrite IHae2.
+      rewrite (unfold_execute_byte_code_program_ic ADD nil (interpreter_v0 ae2 :: interpreter_v0 ae1 :: s)).
+      rewrite unfold_execute_byte_code_program_bc.
+      unfold execute_byte_code_instruction_v0.
+      rewrite (unfold_execute_byte_code_instruction_add (interpreter_v0 ae2 :: interpreter_v0 ae1 :: s)).
+      unfold interpreter_v0.
+      rewrite unfold_interpreter_plus.
+      reflexivity.
 
-    
+      unfold compile_v0.
+      rewrite (unfold_compile_times ae1' ae2').
+      intro s.
+      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae1') (compile ae2' ++ MUL :: nil) s).
+      rewrite IHae1'.
+      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae2') (MUL :: nil) (interpreter_v0 ae1' :: s)).
+      rewrite IHae2'.
+      rewrite (unfold_execute_byte_code_program_ic MUL nil (interpreter_v0 ae2' :: interpreter_v0 ae1' :: s)).
+      rewrite unfold_execute_byte_code_program_bc.
+      unfold execute_byte_code_instruction_v0.
+      rewrite (unfold_execute_byte_code_instruction_mul (interpreter_v0 ae2' :: interpreter_v0 ae1' :: s)).
+      unfold interpreter_v0.
+      rewrite unfold_interpreter_times.
+      reflexivity.
+
+      unfold compile_v0.
+      rewrite (unfold_compile_minus ae1'' ae2'').
+      intro s.
+      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae1'') (compile ae2'' ++ SUB :: nil) s).
+      rewrite IHae1''.
+      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae2'') (SUB :: nil) (interpreter_v0 ae1'' :: s)).
+      rewrite IHae2''.
+      rewrite (unfold_execute_byte_code_program_ic SUB nil (interpreter_v0 ae2'' :: interpreter_v0 ae1'' :: s)).
+      rewrite unfold_execute_byte_code_program_bc.
+      unfold execute_byte_code_instruction_v0.
+      rewrite (unfold_execute_byte_code_instruction_sub (interpreter_v0 ae2'' :: interpreter_v0 ae1'' :: s)).
+      unfold interpreter_v0.
+      rewrite unfold_interpreter_minus.
+      reflexivity.
+Qed.
+
+
+
+Theorem interpret_equals_compile_and_run :
+  forall (ae : arithmetic_expression),
+    run (compile_v0 ae)  = interpreter_v0 ae.
+Proof.
+  intros ae .
+  unfold run.
+  rewrite -> (interpret_equals_compile_and_execute ae).
+  reflexivity.
+Qed.
+
 
 (* ********** *)
 
