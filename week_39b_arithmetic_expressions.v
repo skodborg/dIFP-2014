@@ -847,11 +847,210 @@ Qed.
 
 *)
 
+Definition ae_data_stack := list arithmetic_expression.
+
+Definition specification_of_magritte_execute_instr (mag_execute : byte_code_instruction -> ae_data_stack -> ae_data_stack) :=
+  (forall (n : nat) (s : ae_data_stack),
+     mag_execute (PUSH n) s = ((Lit n) :: s))
+  /\
+  (forall (ae1 ae2 : arithmetic_expression) (s : ae_data_stack),
+     mag_execute ADD s = match s with
+                       | (ae1 :: ae2 :: s) => (Plus ae2 ae1 :: s)
+                       | (ae1 :: nil) => (Plus (Lit 0) ae1 :: nil)
+                       | (nil) => ((Plus (Lit 0) (Lit 0)) :: nil)
+                     end)
+  /\
+  (forall (ae1 ae2 : arithmetic_expression) (s : ae_data_stack),
+     mag_execute MUL s = match s with
+                       | (ae1 :: ae2 :: s) => (Times ae2 ae1 :: s)
+                       | (ae1 :: nil) => (Times (Lit 0) ae1 :: nil)
+                       | (nil) => (Times (Lit 0) (Lit 0) :: nil)
+                     end)
+  /\
+  (forall (ae1 ae2 : arithmetic_expression) (s : ae_data_stack),
+     mag_execute SUB s = match s with
+                       | (ae1 :: ae2 :: s) => (Minus ae2 ae1 :: s)
+                       | (ae1 :: nil) => (Minus (Lit 0) ae1 :: s)
+                       | (nil) => (Minus (Lit 0) (Lit 0) :: nil)
+                     end).
+
+Proposition there_is_only_one_specification_of_magritte_execute_instr :
+  forall f g : byte_code_instruction -> ae_data_stack -> ae_data_stack,
+    specification_of_magritte_execute_instr f ->
+    specification_of_magritte_execute_instr g ->
+    forall (instr : byte_code_instruction) (s : ae_data_stack),
+      f instr s = g instr s.
+Proof.
+  intros f g.
+  unfold specification_of_magritte_execute_instr.
+  intros [S_f_push [S_f_add [S_f_mul S_f_sub]]].
+  intros [S_g_push [S_g_add [S_g_mul S_g_sub]]].
+  intros instr s.
+  assert (a := (Lit 0)).
+  induction instr as [ | i1 IHi1 i2 IHi2 | i1' IHi1' i2' IHi2' | i1'' IHi1'' i2'' IHi2'' ].
+        rewrite S_g_push.
+        exact (S_f_push n s).
+      rewrite (S_g_add a a s).
+      exact (S_f_add a a s).
+    rewrite (S_g_mul a a s).
+    exact (S_f_mul a a s).
+  rewrite (S_g_sub a a s).
+  exact (S_f_sub a a s).
+Qed.  
+
+Definition magritte_execute_instr (instr : byte_code_instruction) (s : ae_data_stack) : ae_data_stack :=
+  match instr with
+    | (PUSH n) => ((Lit n) :: s)
+    | ADD => match s with
+               | (ae1 :: ae2 :: s) => (Plus ae2 ae1 :: s)
+               | (ae1 :: nil) => (Plus (Lit 0) ae1 :: nil)
+               | (nil) => ((Plus (Lit 0) (Lit 0)) :: nil)
+             end
+    | MUL => match s with
+               | (ae1 :: ae2 :: s) => (Times ae2 ae1 :: s)
+               | (ae1 :: nil) => (Times (Lit 0) ae1 :: nil)
+               | (nil) => (Times (Lit 0) (Lit 0) :: nil)
+             end
+    | SUB => match s with
+               | (ae1 :: ae2 :: s) => (Minus ae2 ae1 :: s)
+               | (ae1 :: nil) => (Minus (Lit 0) ae1 :: s)
+               | (nil) => (Minus (Lit 0) (Lit 0) :: nil)
+             end
+  end.
+
+
+Lemma unfold_mag_execute_push :
+  forall (n : nat) (s : ae_data_stack),
+    magritte_execute_instr (PUSH n) s = ((Lit n) :: s).
+Proof.
+  unfold_tactic magritte_execute_instr.
+Qed.
+
+Lemma unfold_mag_execute_add :
+  forall (s : ae_data_stack),
+    magritte_execute_instr ADD s = match s with
+                                     | (ae1 :: ae2 :: s) => (Plus ae2 ae1 :: s)
+                                     | (ae1 :: nil) => (Plus (Lit 0) ae1 :: nil)
+                                     | (nil) => ((Plus (Lit 0) (Lit 0)) :: nil)
+                                   end.
+Proof.
+  unfold_tactic magritte_execute_instr.
+Qed.
+
+Lemma unfold_mag_execute_mul :
+  forall (s : ae_data_stack),
+    magritte_execute_instr MUL s = match s with
+                                     | (ae1 :: ae2 :: s) => (Times ae2 ae1 :: s)
+                                     | (ae1 :: nil) => (Times (Lit 0) ae1 :: nil)
+                                     | (nil) => (Times (Lit 0) (Lit 0) :: nil)
+                                   end.
+Proof.
+  unfold_tactic magritte_execute_instr.
+Qed.
+
+Lemma unfold_mag_execute_sub :
+  forall (s : ae_data_stack),
+    magritte_execute_instr SUB s = match s with
+                                     | (ae1 :: ae2 :: s) => (Minus ae2 ae1 :: s)
+                                     | (ae1 :: nil) => (Minus (Lit 0) ae1 :: s)
+                                     | (nil) => (Minus (Lit 0) (Lit 0) :: nil)
+                                   end.
+Proof.
+  unfold_tactic magritte_execute_instr.
+Qed.
+
+Definition magritte_execute_instr_v0 (instr : byte_code_instruction) (s : ae_data_stack) : ae_data_stack :=
+  magritte_execute_instr instr s.
+
+Proposition magritte_execute_instr_v0_fits_the_specification_of_magritte_execute_instr :
+  specification_of_magritte_execute_instr magritte_execute_instr_v0.
+Proof.
+  unfold specification_of_magritte_execute_instr.
+  split.
+        exact unfold_mag_execute_push.
+      split.
+      intros ae1 ae2.
+      exact unfold_mag_execute_add.
+    split.
+    intros ae1 ae2.
+    exact unfold_mag_execute_mul.
+  intros ae1 ae2.
+  exact unfold_mag_execute_sub.
+Qed.
+
+  
+Definition specification_of_magritte_execute (mag_execute : byte_code_program -> ae_data_stack -> ae_data_stack) :=
+  (forall (s : ae_data_stack),
+     mag_execute nil s = s)
+  /\
+  (forall (instr : byte_code_instruction) (prog : byte_code_program) (s : ae_data_stack),
+     mag_execute (instr :: prog) s = (mag_execute prog (magritte_execute_instr_v0 instr s))).
+
+Proposition there_is_only_one_magritte_execute :
+  forall execute1 execute2 : byte_code_program -> ae_data_stack -> ae_data_stack,
+    specification_of_magritte_execute execute1 ->
+    specification_of_magritte_execute execute2 ->
+    forall (p : byte_code_program) (s : ae_data_stack),
+      execute1 p s = execute2 p s.
+Proof.
+  intros execute1 execute2.
+  intros [S_execute1_bc S_execute1_ic] [S_execute2_bc S_execute2_ic].
+  intros p.
+  induction p as [ | p' ps' IHps'].
+    intro s.
+    rewrite -> S_execute2_bc.
+    apply S_execute1_bc.
+
+  intro s.
+  rewrite -> S_execute2_ic.
+  rewrite <- IHps'.
+  apply S_execute1_ic.
+Qed.
+
+
+Fixpoint magritte_execute_prog (prog : byte_code_program) (s : ae_data_stack) : ae_data_stack :=
+  match prog with
+    | nil => s
+    | (h :: t) => (magritte_execute_prog t (magritte_execute_instr_v0 h s))
+  end.
+
+Lemma unfold_magritte_execute_prog_bc :
+  forall s : ae_data_stack,
+    magritte_execute_prog nil s = s.
+Proof.
+  unfold_tactic magritte_execute_prog.
+Qed.
+
+Lemma unfold_magritte_execute_prog_ic :
+  forall (h : byte_code_instruction) (t : byte_code_program) (s : ae_data_stack),
+    magritte_execute_prog (h :: t) s = (magritte_execute_prog t (magritte_execute_instr_v0 h s)).
+Proof.
+  unfold_tactic execute_byte_code_program.
+Qed.
+
+Definition magritte_execute_prog_v0 (prog : byte_code_program) (s : ae_data_stack) : ae_data_stack :=
+  magritte_execute_prog prog s.
+
+Proposition magritte_execute_prog_v0_satisfies_the_specification :
+  specification_of_magritte_execute magritte_execute_prog_v0.           
+Proof.
+  unfold specification_of_magritte_execute.
+  unfold magritte_execute_prog_v0.
+  split.
+    exact unfold_magritte_execute_prog_bc.
+
+  exact unfold_magritte_execute_prog_ic.
+Qed.
+
+
 (* Exercise 10:
    Prove that the Magrite-style execution function from Exercise 9
    implements a decompiler that is the left inverse of the compiler
    of Exercise 6.
 *)
+
+forall bcp (compile (magritte bcp)) = bcp
+forall bcp (magritte (compile bcp)) = bcp                                        
 
 (* ********** *)
 
