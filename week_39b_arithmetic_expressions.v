@@ -617,8 +617,6 @@ Proof.
 Qed.
 
 
-
-
 (* ********** *)
 
 (* Exercise 8:
@@ -628,6 +626,32 @@ Qed.
 
    by structural induction in the arithmetic expression???
 *)
+
+(* returning the element in the datastack of execute_byte_code_program, if it only contains a single element *)
+Definition run (bcp: byte_code_program) : nat :=
+  match (execute_byte_code_program bcp nil) with
+    | x :: nil => x
+    | _ => 0
+  end.
+
+Proposition interpreting_equals_compile_and_executing :
+  forall (ae : arithmetic_expression),
+    interpreter_v0 ae = run (compile_v0 ae).
+Proof.
+  intro ae.
+  induction ae as [ | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2'].
+    unfold interpreter_v0.
+    unfold compile_v0.
+    rewrite unfold_interpreter_lit.
+    rewrite unfold_compile_lit.
+    unfold run.
+    rewrite (unfold_execute_byte_code_program_ic (PUSH n) nil nil).
+    rewrite unfold_execute_byte_code_program_bc.
+    unfold execute_byte_code_instruction_v0.
+    rewrite unfold_execute_byte_code_instruction_push.
+    reflexivity.
+
+    
 
 (* ********** *)
 
