@@ -207,12 +207,7 @@ Definition data_stack := list nat.
    For now, if the stack underflows, just assume it contains zeroes.
 *)
 
-Definition ae_4 :=
-  PUSH 4.
-
-
-Definition specification_of_execute_byte_code_instruction (execute : byte_code_instruction -> data_stack -> data_stack
-) :=
+Definition specification_of_execute_byte_code_instruction (execute : byte_code_instruction -> data_stack -> data_stack) :=
 
   (forall (n : nat) (s : data_stack),
      execute (PUSH n) s = (n :: s))
@@ -251,14 +246,14 @@ Proof.
   intros bc s.
   assert (a := 0).
   induction bc.
-      rewrite -> S_execute2_push.
-      apply S_execute1_push.
+        rewrite -> S_execute2_push.
+        apply S_execute1_push.
 
-    rewrite -> (S_execute2_add a a).
-    apply (S_execute1_add a a).
+      rewrite -> (S_execute2_add a a).
+      apply (S_execute1_add a a).
 
-  rewrite -> (S_execute2_mul a a).
-  apply (S_execute1_mul a a).
+    rewrite -> (S_execute2_mul a a).
+    apply (S_execute1_mul a a).
 
   rewrite -> (S_execute2_sub a a).
   apply (S_execute1_sub a a).
@@ -375,14 +370,6 @@ Qed.
      execute_byte_code_program : byte_code_program -> data_stack -> data_stack
    that executes a given byte-code program on a given data stack,
    and returns this stack after the program is executed.
-*)
-
-Require Import week_37b_lists_Skodborg_Marc_Simonsen_Michael_Madsen_Stefan.
-
-(*
-Definition specification_of_execute_byte_code_program (execute : byte_code_program -> data_stack -> data_stack) :=
-  (forall (prog : byte_code_program) (s : data_stack),
-    map_v1 byte_code_program data_stack execute_byte_code_instruction_v0 prog).
 *)
 
 Definition specification_of_execute_byte_code_program (execute : byte_code_program -> data_stack -> data_stack) :=
@@ -520,6 +507,59 @@ Definition specification_of_compile (compile : arithmetic_expression -> byte_cod
    and uses list concatenation, i.e., ++.
 *)
 
+Definition beq_bci (x y : byte_code_instruction) : bool :=
+  match x with
+    | PUSH n => match y with
+                  | PUSH m => (beq_nat n m)
+                  | _ => false
+                end
+    | ADD => match y with
+               | ADD => true
+               | _ => false
+             end
+    | MUL => match y with
+               | MUL => true
+               | _ => false
+             end
+    | SUB => match y with
+               | SUB => true
+               | _ => false
+             end
+  end.
+
+Fixpoint beq_list (T : Type) (beq : T -> T -> bool) (xs ys : list T) : bool :=
+  match xs with
+    | nil =>
+      match ys with
+        | nil => true
+        | y :: ys' => false
+      end
+    | x :: xs' =>
+      match ys with
+        | nil => false
+        | y :: ys' => (beq x y) && (beq_list T beq xs' ys')
+      end
+  end.
+
+Definition beq_bcp (xs ys : byte_code_program) : bool :=
+  beq_list byte_code_instruction beq_bci xs ys.
+
+Notation "A =bcp= B" := (beq_bcp A B) (at level 70, right associativity).
+
+Definition unit_tests_for_compile (compile : arithmetic_expression -> byte_code_program) :=
+   ((compile (Lit 5)) =bcp= (PUSH 5 :: nil))
+   &&
+   ((compile ae_0) =bcp= (PUSH 42 :: nil))
+   &&
+   ((compile ae_1) =bcp= (PUSH 10 :: PUSH 20 :: ADD :: nil))
+   &&
+   ((compile ae_2) =bcp= (PUSH 10 :: PUSH 20 :: ADD :: PUSH 3 :: MUL :: nil))
+   &&
+   ((compile ae_3) =bcp= (PUSH 30 :: PUSH 10 :: SUB :: nil)).
+   
+
+
+
 Proposition there_is_only_one_compile :
   forall compile1 compile2 : arithmetic_expression -> byte_code_program,
     specification_of_compile compile1 ->
@@ -535,14 +575,17 @@ Proof.
   induction ae as [ | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2'' | ae1''' IHae1''' ae2''' IHae2''' ].
         rewrite S_compile2_lit.
         exact (S_compile1_lit n).
+
       rewrite S_compile2_plus.
       rewrite <- IHae1'.
       rewrite <- IHae2'.
       exact (S_compile1_plus ae1' ae2').
+
     rewrite S_compile2_times.
     rewrite <- IHae1''.
     rewrite <- IHae2''.
     exact (S_compile1_times ae1'' ae2'').
+
   rewrite S_compile2_minus.
   rewrite <- IHae1'''.
   rewrite <- IHae2'''.
@@ -588,6 +631,7 @@ Qed.
 Definition compile_v0 (ae : arithmetic_expression) : byte_code_program :=
   compile ae.
 
+Compute unit_tests_for_compile compile_v0.
 
 Proposition compile_v0_satisfies_the_specification_of_compile :
   specification_of_compile compile_v0.
@@ -596,10 +640,13 @@ Proof.
   unfold compile_v0.
   split.
     exact unfold_compile_lit.
+
   split.
     exact unfold_compile_plus.
+
   split.
     exact unfold_compile_times.
+
   exact unfold_compile_minus.
 Qed.
 
@@ -648,41 +695,43 @@ Qed.
 Definition compile_v1 (ae : arithmetic_expression) : byte_code_program :=
   compile_acc ae nil.
 
+Compute unit_tests_for_compile compile_v1.
+
 Proposition about_compile_acc :
     forall (ae : arithmetic_expression) (acc : byte_code_program),
       compile_acc ae acc = (compile_acc ae nil) ++ acc.
 Proof.
   intro ae.
   induction ae as [ | ae1' IHae1' ae2' IHae2'' | ae1'' IHae1'' ae2'' IHae2'' | ae1''' IHae1''' ae2''' IHae2''' ].
+        intro acc.
+        rewrite ->2 unfold_compile_acc_lit.
+        rewrite <- app_comm_cons.
+        rewrite app_nil_l.
+        reflexivity.
+
       intro acc.
-      rewrite ->2 unfold_compile_acc_lit.
-      rewrite <- app_comm_cons.
+      rewrite ->2 unfold_compile_acc_plus.
+      rewrite IHae1'.
+      rewrite (IHae1' (compile_acc ae2' (ADD :: nil))).
+      rewrite IHae2''.
+      rewrite (IHae2'' (ADD :: nil)).
+      rewrite <- (app_assoc (compile_acc ae1' nil) (compile_acc ae2' nil ++ ADD :: nil) acc).
+      rewrite <- (app_assoc (compile_acc ae2' nil) (ADD :: nil) acc).
+      rewrite <- (app_comm_cons nil acc ADD).
       rewrite app_nil_l.
       reflexivity.
 
     intro acc.
-    rewrite ->2 unfold_compile_acc_plus.
-    rewrite IHae1'.
-    rewrite (IHae1' (compile_acc ae2' (ADD :: nil))).
+    rewrite ->2 unfold_compile_acc_times.
+    rewrite IHae1''.
+    rewrite (IHae1'' (compile_acc ae2'' (MUL :: nil))).
     rewrite IHae2''.
-    rewrite (IHae2'' (ADD :: nil)).
-    rewrite <- (app_assoc (compile_acc ae1' nil) (compile_acc ae2' nil ++ ADD :: nil) acc).
-    rewrite <- (app_assoc (compile_acc ae2' nil) (ADD :: nil) acc).
-    rewrite <- (app_comm_cons nil acc ADD).
+    rewrite (IHae2'' (MUL :: nil)).
+    rewrite <- (app_assoc (compile_acc ae1'' nil) (compile_acc ae2'' nil ++ MUL :: nil) acc).
+    rewrite <- (app_assoc (compile_acc ae2'' nil) (MUL :: nil) acc).
+    rewrite <- (app_comm_cons nil acc MUL).
     rewrite app_nil_l.
     reflexivity.
-
-  intro acc.
-  rewrite ->2 unfold_compile_acc_times.
-  rewrite IHae1''.
-  rewrite (IHae1'' (compile_acc ae2'' (MUL :: nil))).
-  rewrite IHae2''.
-  rewrite (IHae2'' (MUL :: nil)).
-  rewrite <- (app_assoc (compile_acc ae1'' nil) (compile_acc ae2'' nil ++ MUL :: nil) acc).
-  rewrite <- (app_assoc (compile_acc ae2'' nil) (MUL :: nil) acc).
-  rewrite <- (app_comm_cons nil acc MUL).
-  rewrite app_nil_l.
-  reflexivity.
 
   intro acc.
   rewrite ->2 unfold_compile_acc_minus.
@@ -705,6 +754,7 @@ Proof.
   split.
     intro n.
     apply unfold_compile_acc_lit.
+
   split.
     intros ae1 ae2.
     rewrite -> unfold_compile_acc_plus.
@@ -744,71 +794,87 @@ Definition run (bcp: byte_code_program) : nat :=
     | _ => 0
   end.
 
-
-
 Lemma interpret_equals_compile_and_execute :
   forall (ae : arithmetic_expression) (s : data_stack),
     execute_byte_code_program (compile_v0 ae) s  = (interpreter_v0 ae ) :: s.
 Proof.
   intro ae.
+  unfold compile_v0.
+  unfold interpreter_v0.
   induction ae as [ | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
         intro s.
-        unfold compile_v0.
         rewrite unfold_compile_lit.
         rewrite (unfold_execute_byte_code_program_ic (PUSH n) nil s).
         rewrite unfold_execute_byte_code_program_bc.
         unfold execute_byte_code_instruction_v0.
         rewrite (unfold_execute_byte_code_instruction_push n s).
-        unfold interpreter_v0.
         rewrite unfold_interpreter_lit.
         reflexivity.
-      unfold compile_v0.
-      rewrite (unfold_compile_plus ae1 ae2).
+
       intro s.
-      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae1) (compile ae2 ++ ADD :: nil) s).
+      rewrite (unfold_compile_plus ae1 ae2).
+      rewrite (about_execute_byte_code_program 
+               execute_byte_code_program 
+               execute_byte_code_program_satisfies_the_specification 
+               (compile ae1) 
+               (compile ae2 ++ ADD :: nil) 
+               s).
       rewrite IHae1.
-      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae2) (ADD :: nil) (interpreter_v0 ae1 :: s)).
+      rewrite (about_execute_byte_code_program 
+               execute_byte_code_program 
+               execute_byte_code_program_satisfies_the_specification 
+               (compile ae2) 
+               (ADD :: nil) 
+               (interpreter ae1 :: s)).
       rewrite IHae2.
-      rewrite (unfold_execute_byte_code_program_ic ADD nil (interpreter_v0 ae2 :: interpreter_v0 ae1 :: s)).
+      rewrite (unfold_execute_byte_code_program_ic ADD nil (interpreter ae2 :: interpreter ae1 :: s)).
       rewrite unfold_execute_byte_code_program_bc.
       unfold execute_byte_code_instruction_v0.
-      rewrite (unfold_execute_byte_code_instruction_add (interpreter_v0 ae2 :: interpreter_v0 ae1 :: s)).
-      unfold interpreter_v0.
+      rewrite (unfold_execute_byte_code_instruction_add (interpreter ae2 :: interpreter ae1 :: s)).
       rewrite unfold_interpreter_plus.
       reflexivity.
 
-      unfold compile_v0.
-      rewrite (unfold_compile_times ae1' ae2').
-      intro s.
-      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae1') (compile ae2' ++ MUL :: nil) s).
-      rewrite IHae1'.
-      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae2') (MUL :: nil) (interpreter_v0 ae1' :: s)).
-      rewrite IHae2'.
-      rewrite (unfold_execute_byte_code_program_ic MUL nil (interpreter_v0 ae2' :: interpreter_v0 ae1' :: s)).
-      rewrite unfold_execute_byte_code_program_bc.
-      unfold execute_byte_code_instruction_v0.
-      rewrite (unfold_execute_byte_code_instruction_mul (interpreter_v0 ae2' :: interpreter_v0 ae1' :: s)).
-      unfold interpreter_v0.
-      rewrite unfold_interpreter_times.
-      reflexivity.
+    rewrite (unfold_compile_times ae1' ae2').
+    intro s.
+    rewrite (about_execute_byte_code_program 
+             execute_byte_code_program 
+             execute_byte_code_program_satisfies_the_specification 
+             (compile ae1') 
+             (compile ae2' ++ MUL :: nil) 
+             s).
+    rewrite IHae1'.
+    rewrite (about_execute_byte_code_program 
+             execute_byte_code_program 
+             execute_byte_code_program_satisfies_the_specification 
+             (compile ae2') 
+             (MUL :: nil) 
+             (interpreter ae1' :: s)).
+    rewrite IHae2'.
+    rewrite (unfold_execute_byte_code_program_ic MUL nil (interpreter ae2' :: interpreter ae1' :: s)).
+    rewrite unfold_execute_byte_code_program_bc.
+    unfold execute_byte_code_instruction_v0.
+    rewrite (unfold_execute_byte_code_instruction_mul (interpreter ae2' :: interpreter ae1' :: s)).
+    rewrite unfold_interpreter_times.
+    reflexivity.
 
-      unfold compile_v0.
-      rewrite (unfold_compile_minus ae1'' ae2'').
-      intro s.
-      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae1'') (compile ae2'' ++ SUB :: nil) s).
-      rewrite IHae1''.
-      rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae2'') (SUB :: nil) (interpreter_v0 ae1'' :: s)).
-      rewrite IHae2''.
-      rewrite (unfold_execute_byte_code_program_ic SUB nil (interpreter_v0 ae2'' :: interpreter_v0 ae1'' :: s)).
-      rewrite unfold_execute_byte_code_program_bc.
-      unfold execute_byte_code_instruction_v0.
-      rewrite (unfold_execute_byte_code_instruction_sub (interpreter_v0 ae2'' :: interpreter_v0 ae1'' :: s)).
-      unfold interpreter_v0.
-      rewrite unfold_interpreter_minus.
-      reflexivity.
+  rewrite (unfold_compile_minus ae1'' ae2'').
+  intro s.
+  rewrite (about_execute_byte_code_program 
+           execute_byte_code_program 
+           execute_byte_code_program_satisfies_the_specification 
+           (compile ae1'') 
+           (compile ae2'' ++ SUB :: nil) 
+           s).
+  rewrite IHae1''.
+  rewrite (about_execute_byte_code_program execute_byte_code_program execute_byte_code_program_satisfies_the_specification (compile ae2'') (SUB :: nil) (interpreter ae1'' :: s)).
+  rewrite IHae2''.
+  rewrite (unfold_execute_byte_code_program_ic SUB nil (interpreter ae2'' :: interpreter ae1'' :: s)).
+  rewrite unfold_execute_byte_code_program_bc.
+  unfold execute_byte_code_instruction_v0.
+  rewrite (unfold_execute_byte_code_instruction_sub (interpreter ae2'' :: interpreter ae1'' :: s)).
+  rewrite unfold_interpreter_minus.
+  reflexivity.
 Qed.
-
-
 
 Theorem interpret_equals_compile_and_run :
   forall (ae : arithmetic_expression),
@@ -819,7 +885,6 @@ Proof.
   rewrite -> (interpret_equals_compile_and_execute ae).
   reflexivity.
 Qed.
-
 
 (* ********** *)
 
@@ -874,6 +939,40 @@ Definition specification_of_magritte_execute_instr (mag_execute : byte_code_inst
                        | (nil) => (Minus (Lit 0) (Lit 0) :: nil)
                      end).
 
+Fixpoint beq_ae (x y : arithmetic_expression) : bool :=
+  match x with
+    | Lit n => match y with
+                  | Lit m => (beq_nat n m)
+                  | _ => false
+                end
+    | Plus ae1 ae2 => match y with
+               | Plus ae1' ae2' => (beq_ae ae1 ae1') && (beq_ae ae2 ae2')
+               | _ => false
+             end
+    | Times ae1 ae2 => match y with
+               | Times ae1' ae2' => (beq_ae ae1 ae1') && (beq_ae ae2 ae2')
+               | _ => false
+             end
+    | Minus ae1 ae2 => match y with
+               | Minus ae1' ae2' => (beq_ae ae1 ae1') && (beq_ae ae2 ae2')
+               | _ => false
+             end
+  end.
+
+Definition beq_aes (xs ys : ae_data_stack) : bool :=
+  beq_list arithmetic_expression beq_ae xs ys.
+
+Notation "A =bcp= B" := (beq_aes A B) (at level 70, right associativity).
+
+Definition unit_tests_for_magritte_instr (mag_execute : byte_code_instruction -> ae_data_stack -> ae_data_stack) :=
+   ((mag_execute ADD nil) =bcp= (Plus (Lit 0) (Lit 0)) :: nil)
+   &&
+   ((mag_execute (PUSH 5) nil) =bcp= (Lit 5:: nil))
+   &&
+   ((mag_execute MUL nil) =bcp= (Times (Lit 0) (Lit 0)) :: nil)
+   &&
+   ((mag_execute SUB nil) =bcp= (Minus (Lit 0) (Lit 0)) :: nil).
+
 Proposition there_is_only_one_specification_of_magritte_execute_instr :
   forall f g : byte_code_instruction -> ae_data_stack -> ae_data_stack,
     specification_of_magritte_execute_instr f ->
@@ -890,10 +989,13 @@ Proof.
   induction instr as [ | i1 IHi1 i2 IHi2 | i1' IHi1' i2' IHi2' | i1'' IHi1'' i2'' IHi2'' ].
         rewrite S_g_push.
         exact (S_f_push n s).
+
       rewrite (S_g_add a a s).
       exact (S_f_add a a s).
+
     rewrite (S_g_mul a a s).
     exact (S_f_mul a a s).
+
   rewrite (S_g_sub a a s).
   exact (S_f_sub a a s).
 Qed.  
@@ -962,18 +1064,23 @@ Qed.
 Definition magritte_execute_instr_v0 (instr : byte_code_instruction) (s : ae_data_stack) : ae_data_stack :=
   magritte_execute_instr instr s.
 
+Compute unit_tests_for_magritte_instr magritte_execute_instr_v0.
+
 Proposition magritte_execute_instr_v0_fits_the_specification_of_magritte_execute_instr :
   specification_of_magritte_execute_instr magritte_execute_instr_v0.
 Proof.
   unfold specification_of_magritte_execute_instr.
   split.
-        exact unfold_mag_execute_push.
-      split.
-      intros ae1 ae2.
-      exact unfold_mag_execute_add.
-    split.
+    exact unfold_mag_execute_push.
+  
+  split.
+    intros ae1 ae2.
+    exact unfold_mag_execute_add.
+
+  split.
     intros ae1 ae2.
     exact unfold_mag_execute_mul.
+
   intros ae1 ae2.
   exact unfold_mag_execute_sub.
 Qed.
@@ -985,6 +1092,17 @@ Definition specification_of_magritte_execute (mag_execute : byte_code_program ->
   /\
   (forall (instr : byte_code_instruction) (prog : byte_code_program) (s : ae_data_stack),
      mag_execute (instr :: prog) s = (mag_execute prog (magritte_execute_instr_v0 instr s))).
+
+Definition unit_tests_for_magritte_execute (mag_execute : byte_code_program -> ae_data_stack -> ae_data_stack) :=
+   ((mag_execute (PUSH 5 :: nil) nil) =bcp= (Lit 5 :: nil))
+   &&
+   ((mag_execute (PUSH 42 :: nil) nil) =bcp= (Lit 42 :: nil))
+   &&
+   ((mag_execute (PUSH 10 :: PUSH 20 :: ADD :: nil) nil) =bcp= (ae_1 :: nil))
+   &&
+   ((mag_execute (PUSH 10 :: PUSH 20 :: ADD :: PUSH 3 :: MUL :: nil) nil) =bcp= (ae_2 :: nil))
+   &&
+   ((mag_execute (PUSH 30 :: PUSH 10 :: SUB :: nil) nil) =bcp= (ae_3 :: nil)).
 
 Proposition there_is_only_one_magritte_execute :
   forall execute1 execute2 : byte_code_program -> ae_data_stack -> ae_data_stack,
@@ -1031,8 +1149,10 @@ Qed.
 Definition magritte_execute_prog_v0 (prog : byte_code_program) (s : ae_data_stack) : ae_data_stack :=
   magritte_execute_prog prog s.
 
+Compute unit_tests_for_magritte_execute magritte_execute_prog_v0.
+
 Proposition magritte_execute_prog_v0_satisfies_the_specification :
-  specification_of_magritte_execute magritte_execute_prog_v0.           
+  specification_of_magritte_execute magritte_execute_prog_v0.
 Proof.
   unfold specification_of_magritte_execute.
   unfold magritte_execute_prog_v0.
@@ -1084,76 +1204,76 @@ Theorem magritte_execute_is_left_inverse_of_compile :
     magritte_execute_prog_v0 (compile ae) s = ae :: s.
 Proof.
   intro ae.
+  unfold magritte_execute_prog_v0.
   induction ae as [ | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
-          intro s.
-          rewrite unfold_compile_lit.
-          unfold run_magritte.
-          unfold magritte_execute_prog_v0.
-          rewrite unfold_magritte_execute_prog_ic.
-          rewrite unfold_magritte_execute_prog_bc.
-          unfold magritte_execute_instr_v0.
-          rewrite unfold_mag_execute_push.
-          reflexivity.
-        rewrite (unfold_compile_plus ae1 ae2).
         intro s.
-        rewrite (about_magritte_execute magritte_execute_prog_v0
-                                        magritte_execute_prog_v0_satisfies_the_specification
-                                        (compile ae1)
-                                        (compile ae2 ++ ADD :: nil)
-                                        s).
-        rewrite IHae1.
-        rewrite (about_magritte_execute magritte_execute_prog_v0
-                                        magritte_execute_prog_v0_satisfies_the_specification
-                                        (compile ae2)
-                                        (ADD :: nil)
-                                        (ae1 :: s)).
-        rewrite IHae2.
-        unfold magritte_execute_prog_v0.
-        rewrite (unfold_magritte_execute_prog_ic ADD nil (ae2 :: ae1 :: s)).
+        rewrite unfold_compile_lit.
+        unfold run_magritte.
+        rewrite unfold_magritte_execute_prog_ic.
         rewrite unfold_magritte_execute_prog_bc.
         unfold magritte_execute_instr_v0.
-        rewrite (unfold_mag_execute_add (ae2 :: ae1 :: s)).
+        rewrite unfold_mag_execute_push.
         reflexivity.
-      rewrite (unfold_compile_times ae1' ae2').
+
+      rewrite (unfold_compile_plus ae1 ae2).
       intro s.
-      rewrite (about_magritte_execute magritte_execute_prog_v0
+      rewrite (about_magritte_execute magritte_execute_prog
                                       magritte_execute_prog_v0_satisfies_the_specification
-                                      (compile ae1')
-                                      (compile ae2' ++ MUL :: nil)
+                                      (compile ae1)
+                                      (compile ae2 ++ ADD :: nil)
                                       s).
-      rewrite IHae1'.
-      rewrite (about_magritte_execute magritte_execute_prog_v0
+      rewrite IHae1.
+      rewrite (about_magritte_execute magritte_execute_prog
                                       magritte_execute_prog_v0_satisfies_the_specification
-                                      (compile ae2')
-                                      (MUL :: nil)
-                                      (ae1' :: s)).
-      rewrite IHae2'.
-      unfold magritte_execute_prog_v0.
-      rewrite (unfold_magritte_execute_prog_ic MUL nil (ae2' :: ae1' :: s)).
+                                      (compile ae2)
+                                      (ADD :: nil)
+                                      (ae1 :: s)).
+      rewrite IHae2.
+      rewrite (unfold_magritte_execute_prog_ic ADD nil (ae2 :: ae1 :: s)).
       rewrite unfold_magritte_execute_prog_bc.
       unfold magritte_execute_instr_v0.
-      rewrite (unfold_mag_execute_mul (ae2' :: ae1' :: s)).
+      rewrite (unfold_mag_execute_add (ae2 :: ae1 :: s)).
       reflexivity.
-    rewrite (unfold_compile_minus ae1'' ae2'').
+
+    rewrite (unfold_compile_times ae1' ae2').
     intro s.
-    rewrite (about_magritte_execute magritte_execute_prog_v0
+    rewrite (about_magritte_execute magritte_execute_prog
                                     magritte_execute_prog_v0_satisfies_the_specification
-                                    (compile ae1'')
-                                    (compile ae2'' ++ SUB :: nil)
+                                    (compile ae1')
+                                    (compile ae2' ++ MUL :: nil)
                                     s).
-    rewrite IHae1''.
-    rewrite (about_magritte_execute magritte_execute_prog_v0
+    rewrite IHae1'.
+    rewrite (about_magritte_execute magritte_execute_prog
                                     magritte_execute_prog_v0_satisfies_the_specification
-                                    (compile ae2'')
-                                    (SUB :: nil)
-                                    (ae1'' :: s)).
-    rewrite IHae2''.
-    unfold magritte_execute_prog_v0.
-    rewrite (unfold_magritte_execute_prog_ic SUB nil (ae2'' :: ae1'' :: s)).
+                                    (compile ae2')
+                                    (MUL :: nil)
+                                    (ae1' :: s)).
+    rewrite IHae2'.
+    rewrite (unfold_magritte_execute_prog_ic MUL nil (ae2' :: ae1' :: s)).
     rewrite unfold_magritte_execute_prog_bc.
     unfold magritte_execute_instr_v0.
-    rewrite (unfold_mag_execute_sub (ae2'' :: ae1'' :: s)).
+    rewrite (unfold_mag_execute_mul (ae2' :: ae1' :: s)).
     reflexivity.
+
+  rewrite (unfold_compile_minus ae1'' ae2'').
+  intro s.
+  rewrite (about_magritte_execute magritte_execute_prog
+                                  magritte_execute_prog_v0_satisfies_the_specification
+                                  (compile ae1'')
+                                  (compile ae2'' ++ SUB :: nil)
+                                  s).
+  rewrite IHae1''.
+  rewrite (about_magritte_execute magritte_execute_prog
+                                  magritte_execute_prog_v0_satisfies_the_specification
+                                  (compile ae2'')
+                                  (SUB :: nil)
+                                  (ae1'' :: s)).
+  rewrite IHae2''.
+  rewrite (unfold_magritte_execute_prog_ic SUB nil (ae2'' :: ae1'' :: s)).
+  rewrite unfold_magritte_execute_prog_bc.
+  unfold magritte_execute_instr_v0.
+  rewrite (unfold_mag_execute_sub (ae2'' :: ae1'' :: s)).
+  reflexivity.
 Qed.
 
 (* ********** *)
