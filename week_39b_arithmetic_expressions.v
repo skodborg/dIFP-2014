@@ -1049,8 +1049,112 @@ Qed.
    of Exercise 6.
 *)
 
-forall bcp (compile (magritte bcp)) = bcp
-forall bcp (magritte (compile bcp)) = bcp                                        
+Proposition about_magritte_execute :
+  forall (mag_exec : byte_code_program -> ae_data_stack -> ae_data_stack),
+    specification_of_magritte_execute mag_exec ->
+    forall (p1 p2 : byte_code_program) (s : ae_data_stack),
+      mag_exec (p1 ++ p2) s = mag_exec p2 (mag_exec p1 s).
+Proof.
+  intros mag_exec.
+  intros [S_execute_bc S_execute_ic].
+  intros p1.
+  induction p1 as [ | p1' p1s' IHp1s' ].
+    intros p2 s.
+    rewrite -> S_execute_bc.
+    rewrite -> app_nil_l.
+    reflexivity.
+
+  intros p2 s.
+  rewrite -> S_execute_ic.
+  rewrite <- IHp1s'.
+  rewrite <- app_comm_cons.
+  rewrite -> S_execute_ic.
+  reflexivity.
+Qed.
+
+Definition run_magritte (bcp : byte_code_program) : arithmetic_expression :=
+  match (magritte_execute_prog_v0 bcp nil) with
+    | x :: nil => x
+    | _ => (Lit 0)
+  end.
+
+
+Theorem magritte_execute_is_left_inverse_of_compile :
+  forall (ae : arithmetic_expression) (s : ae_data_stack),
+    magritte_execute_prog_v0 (compile ae) s = ae :: s.
+Proof.
+  intro ae.
+  induction ae as [ | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
+          intro s.
+          rewrite unfold_compile_lit.
+          unfold run_magritte.
+          unfold magritte_execute_prog_v0.
+          rewrite unfold_magritte_execute_prog_ic.
+          rewrite unfold_magritte_execute_prog_bc.
+          unfold magritte_execute_instr_v0.
+          rewrite unfold_mag_execute_push.
+          reflexivity.
+        rewrite (unfold_compile_plus ae1 ae2).
+        intro s.
+        rewrite (about_magritte_execute magritte_execute_prog_v0
+                                        magritte_execute_prog_v0_satisfies_the_specification
+                                        (compile ae1)
+                                        (compile ae2 ++ ADD :: nil)
+                                        s).
+        rewrite IHae1.
+        rewrite (about_magritte_execute magritte_execute_prog_v0
+                                        magritte_execute_prog_v0_satisfies_the_specification
+                                        (compile ae2)
+                                        (ADD :: nil)
+                                        (ae1 :: s)).
+        rewrite IHae2.
+        unfold magritte_execute_prog_v0.
+        rewrite (unfold_magritte_execute_prog_ic ADD nil (ae2 :: ae1 :: s)).
+        rewrite unfold_magritte_execute_prog_bc.
+        unfold magritte_execute_instr_v0.
+        rewrite (unfold_mag_execute_add (ae2 :: ae1 :: s)).
+        reflexivity.
+      rewrite (unfold_compile_times ae1' ae2').
+      intro s.
+      rewrite (about_magritte_execute magritte_execute_prog_v0
+                                      magritte_execute_prog_v0_satisfies_the_specification
+                                      (compile ae1')
+                                      (compile ae2' ++ MUL :: nil)
+                                      s).
+      rewrite IHae1'.
+      rewrite (about_magritte_execute magritte_execute_prog_v0
+                                      magritte_execute_prog_v0_satisfies_the_specification
+                                      (compile ae2')
+                                      (MUL :: nil)
+                                      (ae1' :: s)).
+      rewrite IHae2'.
+      unfold magritte_execute_prog_v0.
+      rewrite (unfold_magritte_execute_prog_ic MUL nil (ae2' :: ae1' :: s)).
+      rewrite unfold_magritte_execute_prog_bc.
+      unfold magritte_execute_instr_v0.
+      rewrite (unfold_mag_execute_mul (ae2' :: ae1' :: s)).
+      reflexivity.
+    rewrite (unfold_compile_minus ae1'' ae2'').
+    intro s.
+    rewrite (about_magritte_execute magritte_execute_prog_v0
+                                    magritte_execute_prog_v0_satisfies_the_specification
+                                    (compile ae1'')
+                                    (compile ae2'' ++ SUB :: nil)
+                                    s).
+    rewrite IHae1''.
+    rewrite (about_magritte_execute magritte_execute_prog_v0
+                                    magritte_execute_prog_v0_satisfies_the_specification
+                                    (compile ae2'')
+                                    (SUB :: nil)
+                                    (ae1'' :: s)).
+    rewrite IHae2''.
+    unfold magritte_execute_prog_v0.
+    rewrite (unfold_magritte_execute_prog_ic SUB nil (ae2'' :: ae1'' :: s)).
+    rewrite unfold_magritte_execute_prog_bc.
+    unfold magritte_execute_instr_v0.
+    rewrite (unfold_mag_execute_sub (ae2'' :: ae1'' :: s)).
+    reflexivity.
+Qed.
 
 (* ********** *)
 
