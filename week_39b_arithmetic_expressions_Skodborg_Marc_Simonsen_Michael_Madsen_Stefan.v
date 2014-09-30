@@ -6,6 +6,19 @@
    the updated version after class.
 *)
 
+(* Hi Kent
+   In your feedback you wrote:
+      Always take the smallest, logical step. 
+      You haven't "intro"ed the variables before you used "induction."
+   But we have looked at all inductions in the file, and we can not find an instance 
+   where we are perfoming induction without first introducing the variable, so could 
+   you please be a bit more specific.
+
+   Your truly
+   group k
+*)
+
+
 (* ********** *)
 
 Require Import Arith Bool unfold_tactic List.
@@ -259,7 +272,19 @@ Proof.
   apply (S_execute1_sub a a).
 Qed.
 
-Require Import week_37b_lists_Skodborg_Marc_Simonsen_Michael_Madsen_Stefan.
+Fixpoint equal_list_nat (xs ys : list nat) :=
+  match xs with
+    | nil =>
+      match ys with
+        | nil => true
+        | y :: ys' => false
+      end
+    | x :: xs' =>
+      match ys with
+        | nil => false
+        | y :: ys' => (beq_nat x y) && (equal_list_nat xs' ys')
+      end
+  end.
 
 Definition unit_tests_for_byte_code_instruction (candidate : byte_code_instruction -> data_stack -> data_stack) :=
   (equal_list_nat (candidate (PUSH 5) nil) 
