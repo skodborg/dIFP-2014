@@ -776,6 +776,41 @@ Proof.
   reflexivity.
 Qed.
 
+Proposition compile_v1_equals_compile_v0 :
+  forall ae : arithmetic_expression,
+    compile_v1 ae = compile_v0 ae.
+Proof.
+  intro ae.
+  induction ae as [ | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
+        exact (there_is_only_one_compile compile_v1
+                                         compile_v0
+                                         compile_v1_satisfies_the_specification_of_compile
+                                         compile_v0_satisfies_the_specification_of_compile
+                                         (Lit n)
+              ).
+      exact (there_is_only_one_compile compile_v1
+                                       compile_v0
+                                       compile_v1_satisfies_the_specification_of_compile
+                                       compile_v0_satisfies_the_specification_of_compile
+                                       (Plus ae1 ae2)
+            ).
+    exact (there_is_only_one_compile compile_v1
+                                     compile_v0
+                                     compile_v1_satisfies_the_specification_of_compile
+                                     compile_v0_satisfies_the_specification_of_compile
+                                     (Times ae1' ae2')
+          ).
+  exact (there_is_only_one_compile compile_v1
+                                   compile_v0
+                                   compile_v1_satisfies_the_specification_of_compile
+                                   compile_v0_satisfies_the_specification_of_compile
+                                   (Minus ae1'' ae2'')
+        ).
+Qed.      
+
+
+
+
 
 (* ********** *)
 
