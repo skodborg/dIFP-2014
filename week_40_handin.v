@@ -521,54 +521,51 @@ Qed.
 
 (* ******** *)
 
+Definition specification_of_mystery_function (f : nat -> nat) :=
+  forall t : binary_tree_nat,
+    f (number_of_nodes_v0 t) = number_of_leaves_v1' t.
 
-Definition specification_of_mystery_function (f : nat -> nat ) :=
-  forall g h : binary_tree_nat -> nat,
-    specification_of_number_of_nodes g ->
-    specification_of_number_of_leaves h ->
-    forall t : binary_tree_nat,
-      f (g t) = h t.
 
 Notation "A === B" := (beq_nat A B) (at level 70, right associativity).
 
 Definition unit_tests_for_mystery_function (f : nat -> nat) :=
-  (f 4 === 5)
+  (f (number_of_nodes_v0 bt_0) === (number_of_leaves_v1' bt_0))
   &&
-  (f 0 === 1)
+  (f (number_of_nodes_v0 bt_1) === (number_of_leaves_v1' bt_1))
   &&
-  (f 1 === 2).
+  (f (number_of_nodes_v0 bt_2) === (number_of_leaves_v1' bt_2))
+  &&
+  (f (number_of_nodes_v0 (Node bt_1 bt_2)) === (number_of_leaves_v1' (Node bt_1 bt_2))).
 
-Definition mystery_function (n : nat) : nat :=
-  n + 1.
+Definition mystery_function : nat -> nat :=
+  S.
 
 Compute unit_tests_for_mystery_function mystery_function.
+
 
 Proposition mystery_function_satisfies_specification_of_mystery_function :
   specification_of_mystery_function mystery_function.
 Proof.
   unfold specification_of_mystery_function.
-  intros g h.
-  intros S_g S_h.
-  unfold specification_of_number_of_nodes in S_g.
-  destruct S_g as [S_g_leaf S_g_node].
-  unfold specification_of_number_of_leaves in S_h.
-  destruct S_h as [S_h_leaf S_h_node].
   intro t.
+  unfold mystery_function.
+  unfold number_of_nodes_v0.
+  unfold number_of_leaves_v1'.
   induction t as [ n | t1 IHt1 t2 IHt2 ].
-    rewrite S_h_leaf.
-    rewrite S_g_leaf.
-    unfold mystery_function.
-    rewrite plus_0_l.
-    reflexivity.
-  rewrite S_h_node.
-  rewrite S_g_node.
-  unfold mystery_function.
+    rewrite unfold_number_of_nodes_ds_leaf.
+    rewrite unfold_number_of_leaves_acc'_Leaf.
+    ring.
+  rewrite unfold_number_of_nodes_ds_node.
+  rewrite (plus_n_Sm (number_of_nodes_ds t1) (number_of_nodes_ds t2)).
+  rewrite <- plus_1_l.
+  rewrite unfold_number_of_leaves_acc'_Node.
+  rewrite (about_number_of_leaves_acc' t2 (number_of_leaves_acc' t1 0)).
   rewrite <- IHt1.
-  unfold mystery_function.
   rewrite <- IHt2.
-  unfold mystery_function.
   ring.
 Qed.
+
+
 
 Theorem there_is_only_one_specification_of_mystery_function :
   forall f g : nat -> nat,
@@ -579,20 +576,9 @@ Theorem there_is_only_one_specification_of_mystery_function :
 Proof.
   intros f g.
   unfold specification_of_mystery_function.
-  intro S_f.
+  unfold number_of_nodes_v0.
   
-
-
-
+  intro S_g.
   intro n.
-  unfold specification_of_mystery_function.
-  induction n as [ | n' IHn'].
-    unfold specification_of_mystery_function in S_f.
-    unfold specification_of_number_of_nodes in S_f.
-    unfold specification_of_number_of_leaves in S_f.
-    Check (S_f number_of_nodes_v0
-               number_of_leaves_v1'
-               number_of_nodes_v0_satisfies_the_specification_of_number_of_nodes
-               number_of_leaves_v1'_satisfies_the_specification_of_number_of_leaves
-               (Leaf 42)
-          ).
+  induction n as [ | n IHn ].
+Abort.
