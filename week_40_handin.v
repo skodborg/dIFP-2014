@@ -443,4 +443,156 @@ Proof.
 Qed.
 
 
+(* from week_39_binary_trees.v *)
+Definition unit_test_for_number_of_nodes (candidate : binary_tree_nat -> nat) :=
+  (candidate bt_0 =n= 0)
+    &&
+    (candidate bt_1 =n= 1)
+    &&
+    (candidate bt_2 =n= 2).
 
+Definition specification_of_number_of_nodes (number_of_nodes : binary_tree_nat -> nat) :=
+  (forall n : nat,
+     number_of_nodes (Leaf n) = 0)
+  /\
+  (forall t1 t2 : binary_tree_nat,
+     number_of_nodes (Node t1 t2) = S (number_of_nodes t1 + number_of_nodes t2)).
+
+Theorem there_is_only_one_number_of_nodes :
+  forall f g : binary_tree_nat -> nat,
+    specification_of_number_of_nodes f ->
+    specification_of_number_of_nodes g ->
+    forall t : binary_tree_nat,
+      f t = g t.
+Proof.
+  intros f g.
+  unfold specification_of_number_of_nodes.
+  intros [S_f_leaf S_f_node] [S_g_leaf S_g_node].
+  intro t.
+  induction t as [n | t1 IHt1 t2 IHt2].
+
+    rewrite S_g_leaf.
+    exact (S_f_leaf n).
+
+  rewrite S_f_node.
+  rewrite S_g_node.
+  rewrite IHt1.
+  rewrite IHt2.
+  reflexivity.
+Qed.
+
+Fixpoint number_of_nodes_ds (t : binary_tree_nat) : nat :=
+  match t with
+      | Leaf n =>
+        0
+      | Node t1 t2 =>
+        S (number_of_nodes_ds t1 + number_of_nodes_ds t2)
+  end.
+
+Lemma unfold_number_of_nodes_ds_leaf :
+  forall n : nat,
+    number_of_nodes_ds (Leaf n) = 0.
+Proof.
+  unfold_tactic number_of_nodes_ds.
+Qed.
+
+Lemma unfold_number_of_nodes_ds_node :
+  forall t1 t2 : binary_tree_nat,
+    number_of_nodes_ds (Node t1 t2) = S (number_of_nodes_ds t1 + number_of_nodes_ds t2).
+Proof.
+  unfold_tactic number_of_nodes_ds.
+Qed.
+
+Definition number_of_nodes_v0 (t : binary_tree_nat) : nat :=
+  number_of_nodes_ds t.
+
+Compute unit_test_for_number_of_nodes number_of_nodes_v0.
+
+Proposition number_of_nodes_v0_satisfies_the_specification_of_number_of_nodes :
+  specification_of_number_of_nodes number_of_nodes_v0.
+Proof.
+  unfold specification_of_number_of_nodes.
+  split.
+    unfold number_of_nodes_v0.
+    exact unfold_number_of_nodes_ds_leaf.
+  unfold number_of_nodes_v0.
+  exact unfold_number_of_nodes_ds_node.
+Qed.
+
+(* ******** *)
+
+
+Definition specification_of_mystery_function (f : nat -> nat ) :=
+  forall g h : binary_tree_nat -> nat,
+    specification_of_number_of_nodes g ->
+    specification_of_number_of_leaves h ->
+    forall t : binary_tree_nat,
+      f (g t) = h t.
+
+Notation "A === B" := (beq_nat A B) (at level 70, right associativity).
+
+Definition unit_tests_for_mystery_function (f : nat -> nat) :=
+  (f 4 === 5)
+  &&
+  (f 0 === 1)
+  &&
+  (f 1 === 2).
+
+Definition mystery_function (n : nat) : nat :=
+  n + 1.
+
+Compute unit_tests_for_mystery_function mystery_function.
+
+Proposition mystery_function_satisfies_specification_of_mystery_function :
+  specification_of_mystery_function mystery_function.
+Proof.
+  unfold specification_of_mystery_function.
+  intros g h.
+  intros S_g S_h.
+  unfold specification_of_number_of_nodes in S_g.
+  destruct S_g as [S_g_leaf S_g_node].
+  unfold specification_of_number_of_leaves in S_h.
+  destruct S_h as [S_h_leaf S_h_node].
+  intro t.
+  induction t as [ n | t1 IHt1 t2 IHt2 ].
+    rewrite S_h_leaf.
+    rewrite S_g_leaf.
+    unfold mystery_function.
+    rewrite plus_0_l.
+    reflexivity.
+  rewrite S_h_node.
+  rewrite S_g_node.
+  unfold mystery_function.
+  rewrite <- IHt1.
+  unfold mystery_function.
+  rewrite <- IHt2.
+  unfold mystery_function.
+  ring.
+Qed.
+
+Theorem there_is_only_one_specification_of_mystery_function :
+  forall f g : nat -> nat,
+    specification_of_mystery_function f ->
+    specification_of_mystery_function g ->
+    forall n : nat,
+      f n = g n.
+Proof.
+  intros f g.
+  unfold specification_of_mystery_function.
+  intro S_f.
+  
+
+
+
+  intro n.
+  unfold specification_of_mystery_function.
+  induction n as [ | n' IHn'].
+    unfold specification_of_mystery_function in S_f.
+    unfold specification_of_number_of_nodes in S_f.
+    unfold specification_of_number_of_leaves in S_f.
+    Check (S_f number_of_nodes_v0
+               number_of_leaves_v1'
+               number_of_nodes_v0_satisfies_the_specification_of_number_of_nodes
+               number_of_leaves_v1'_satisfies_the_specification_of_number_of_leaves
+               (Leaf 42)
+          ).

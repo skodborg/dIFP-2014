@@ -709,6 +709,12 @@ Qed.
    Revisit how to compute the number of nodes
    of a binary tree.
 *)
+Definition unit_test_for_number_of_nodes (candidate : binary_tree_nat -> nat) :=
+  (candidate bt_0 =n= 0)
+    &&
+    (candidate bt_1 =n= 1)
+    &&
+    (candidate bt_2 =n= 2).
 
 Definition specification_of_number_of_nodes (number_of_nodes : binary_tree_nat -> nat) :=
   (forall n : nat,
@@ -716,6 +722,58 @@ Definition specification_of_number_of_nodes (number_of_nodes : binary_tree_nat -
   /\
   (forall t1 t2 : binary_tree_nat,
      number_of_nodes (Node t1 t2) = S (number_of_nodes t1 + number_of_nodes t2)).
+
+Theorem there_is_only_one_number_of_nodes :
+  forall f g : binary_tree_nat -> nat,
+    specification_of_number_of_nodes f ->
+    specification_of_number_of_nodes g ->
+    forall t : binary_tree_nat,
+      f t = g t.
+Proof.
+  intros f g.
+  unfold specification_of_number_of_nodes.
+  intros [S_f_leaf S_f_node] [S_g_leaf S_g_node].
+  intro t.
+  induction t as [n | t1 IHt1 t2 IHt2].
+
+    rewrite S_g_leaf.
+    exact (S_f_leaf n).
+
+  rewrite S_f_node.
+  rewrite S_g_node.
+  rewrite IHt1.
+  rewrite IHt2.
+  reflexivity.
+Qed.
+
+Fixpoint number_of_nodes_ds (t : binary_tree_nat) : nat :=
+  match t with
+      | Leaf n =>
+        0
+      | Node t1 t2 =>
+        S (number_of_nodes_ds t1 + number_of_nodes_ds t2)
+  end.
+
+Lemma unfold_number_of_nodes_ds_leaf :
+  forall n : nat,
+    number_of_nodes_ds (Leaf n) = 0.
+Proof.
+  unfold_tactic number_of_nodes_ds.
+Qed.
+
+Lemma unfold_number_of_nodes_ds_node :
+  forall t1 t2 : binary_tree_nat,
+    number_of_nodes_ds (Node t1 t2) = S (number_of_nodes_ds t1 + number_of_nodes_ds t2).
+Proof.
+  unfold_tactic number_of_nodes_ds.
+Qed.
+
+Definition number_of_nodes_v0 (t : binary_tree_nat) : nat :=
+  number_of_nodes_ds t.
+
+Compute unit_test_for_number_of_nodes number_of_nodes_v0.
+
+(* MANGLER number_of_nodes_v0_fits_the_specification_of_number_of_nodes *)
 
 (* ********** *)
 
