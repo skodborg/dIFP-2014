@@ -404,17 +404,43 @@ Proof.
   split.
     exact unfold_product_of_leaves'_ds_Leaf.
 
-  intros t1 t2.
-  rewrite -> unfold_product_of_leaves'_ds_Node.
-  induction t1 as [].
-  assert (x := 0).
-  
-  exact un
-  
+  intro t1.
+  induction t1 as [ n | t1 IHt1 t2 IHt2 ].
+    intro t2.
+    rewrite unfold_product_of_leaves'_ds_Node.
+    induction n as [ | n IHn].
+      rewrite unfold_product_of_leaves'_ds_Leaf.
+      rewrite mult_0_l.
+      reflexivity.
+    induction t2 as [ n' | t1' IHt1' t2' IHt2' ].
+      induction n' as [ | n' IHn' ].
+        rewrite ->2 unfold_product_of_leaves'_ds_Leaf.
+        rewrite mult_0_r.
+        reflexivity.
+      reflexivity.
+    reflexivity.
+  intro t0.
+  rewrite unfold_product_of_leaves'_ds_Node.
+  case t0 as [ | n'] eqn:Ht0.
+  induction n as [ | n IHn].
+   rewrite unfold_product_of_leaves'_ds_Leaf.
+   rewrite mult_0_r.
+   reflexivity.
+ reflexivity.
+ reflexivity.
 Qed.
 
 
-
+Proposition product_of_leaves_v0_equals_product_of_leaves_v1 :
+  forall t : binary_tree_nat,
+    product_of_leaves_v0 t = product_of_leaves_v1 t.
+Proof.
+  exact (there_is_only_one_product_of_leaves product_of_leaves_v0
+                                             product_of_leaves_v1
+                                             product_of_leaves_v0_satisfies_the_specification_of_product_of_leaves
+                                             product_of_leaves_v1_satisfies_the_specification_of_product_of_leaves
+        ).
+Qed.
 
 
 
