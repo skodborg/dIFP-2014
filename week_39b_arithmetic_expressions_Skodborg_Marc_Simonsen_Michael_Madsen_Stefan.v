@@ -5,7 +5,6 @@
 (* Working version, make sure to download
    the updated version after class.
 *)
-
 (* Hi Kent
    In your feedback you wrote:
       Always take the smallest, logical step. 
@@ -101,7 +100,7 @@ Proof.
   intros [S_interpret1_lit [S_interpret1_plus [S_interpret1_times S_interpret1_minus]]].
   intros [S_interpret2_lit [S_interpret2_plus [S_interpret2_times S_interpret2_minus]]].
   intro ae.
-  induction ae as [ | ae1 IHae1 | ae2 IHae2 | ae3 IHae3].
+  induction ae as [ae | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2].
         rewrite -> S_interpret2_lit.
         apply S_interpret1_lit.
 
@@ -117,7 +116,7 @@ Proof.
 
   rewrite -> S_interpret2_minus.
   rewrite <- IHae1.
-  rewrite <- IHae3.
+  rewrite <- IHae2.
   apply S_interpret1_minus.
 Qed.
 
@@ -258,7 +257,7 @@ Proof.
   intros [S_execute2_push [S_execute2_add [S_execute2_mul S_execute2_sub]]].
   intros bc s.
   assert (a := 0).
-  induction bc.
+  induction bc as [ n | | | ].
         rewrite -> S_execute2_push.
         apply S_execute1_push.
 
@@ -597,7 +596,7 @@ Proof.
   intros [S_compile1_lit [S_compile1_plus [S_compile1_times S_compile1_minus]]].
   intros [S_compile2_lit [S_compile2_plus [S_compile2_times S_compile2_minus]]].
   intro ae.
-  induction ae as [ | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2'' | ae1''' IHae1''' ae2''' IHae2''' ].
+  induction ae as [ n | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2'' | ae1''' IHae1''' ae2''' IHae2''' ].
         rewrite S_compile2_lit.
         exact (S_compile1_lit n).
 
@@ -727,7 +726,7 @@ Proposition about_compile_acc :
       compile_acc ae acc = (compile_acc ae nil) ++ acc.
 Proof.
   intro ae.
-  induction ae as [ | ae1' IHae1' ae2' IHae2'' | ae1'' IHae1'' ae2'' IHae2'' | ae1''' IHae1''' ae2''' IHae2''' ].
+  induction ae as [ n | ae1' IHae1' ae2' IHae2'' | ae1'' IHae1'' ae2'' IHae2'' | ae1''' IHae1''' ae2''' IHae2''' ].
         intro acc.
         rewrite ->2 unfold_compile_acc_lit.
         rewrite <- app_comm_cons.
@@ -837,7 +836,7 @@ Proof.
   intro ae.
   unfold compile_v0.
   unfold interpreter_v0.
-  induction ae as [ | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
+  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
         intro s.
         rewrite unfold_compile_lit.
         rewrite (unfold_execute_byte_code_program_ic (PUSH n) nil s).
@@ -1022,7 +1021,7 @@ Proof.
   intros [S_g_push [S_g_add [S_g_mul S_g_sub]]].
   intros instr s.
   assert (a := (Lit 0)).
-  induction instr as [ | i1 IHi1 i2 IHi2 | i1' IHi1' i2' IHi2' | i1'' IHi1'' i2'' IHi2'' ].
+  induction instr as [ n | i1 IHi1 i2 IHi2 | i1' IHi1' i2' IHi2' | i1'' IHi1'' i2'' IHi2'' ].
         rewrite S_g_push.
         exact (S_f_push n s).
 
@@ -1241,7 +1240,7 @@ Theorem magritte_execute_is_left_inverse_of_compile :
 Proof.
   intro ae.
   unfold magritte_execute_prog_v0.
-  induction ae as [ | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
+  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1' IHae1' ae2' IHae2' | ae1'' IHae1'' ae2'' IHae2''].
         intro s.
         rewrite unfold_compile_lit.
         unfold run_magritte.
