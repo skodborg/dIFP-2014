@@ -1,4 +1,4 @@
-Require Import Arith Bool unfold_tactic.
+Require Import Arith Bool unfold_tactic List.
 
 Lemma plus_1_l :
   forall n : nat,
@@ -542,7 +542,6 @@ Definition mystery_function : nat -> nat :=
 
 Compute unit_tests_for_mystery_function mystery_function.
 
-
 Proposition mystery_function_satisfies_specification_of_mystery_function :
   specification_of_mystery_function mystery_function.
 Proof.
@@ -565,20 +564,296 @@ Proof.
   ring.
 Qed.
 
+(* Flatten  *)
+
+(* Sample of binary trees of natural numbers: *)
+
+Fixpoint equal_list_nat (xs ys : list nat) :=
+  match xs with
+    | nil =>
+      match ys with
+        | nil => true
+        | y :: ys' => false
+      end
+    | x :: xs' =>
+      match ys with
+        | nil => false
+        | y :: ys' => (beq_nat x y) && (equal_list_nat xs' ys')
+      end
+  end.
+
+Definition unit_test_for_flatten (candidate : binary_tree_nat -> list nat) :=
+  (equal_list_nat (candidate bt_0) (42 :: nil))
+  &&
+  (equal_list_nat (candidate bt_1) (1 :: 2 :: nil))
+  &&
+  (equal_list_nat (candidate bt_2) (1 :: 2 :: 3 :: nil))
+  &&
+  (equal_list_nat (candidate (Node bt_1 bt_2)) (1 :: 2 :: 1 :: 2 :: 3 :: nil)).
+
+(* ********** *)
+
+Definition specification_of_flatten (flatten : binary_tree_nat -> list nat) :=
+  (forall n : nat,
+     flatten (Leaf n) = n :: nil)
+  /\
+  (forall t1 t2 : binary_tree_nat,
+     flatten (Node t1 t2) = (flatten t1) ++ (flatten t2)).
+
+Theorem there_is_only_one_flatten :
+  forall flatten1 flatten2 : binary_tree_nat -> list nat,
+    specification_of_flatten flatten1 ->
+    specification_of_flatten flatten2 ->
+    forall t : binary_tree_nat,
+      flatten1 t = flatten2 t.
+Proof.
+  intros flatten1 flatten2.
+  unfold specification_of_flatten.
+  intros [H1_leaf H1_node] [H2_leaf H2_node].
+  intro t.
+  induction t as [n | t1 IHt1 t2 IHt2].
+
+  rewrite -> H2_leaf.
+  apply H1_leaf.
+
+  rewrite -> H1_node.
+  rewrite -> H2_node.
+  rewrite -> IHt1.
+  rewrite -> IHt2.
+  reflexivity.
+Qed.
+
+(* ********** *)
+
+(* Version with append: *)
+
+Fixpoint flatten_ds (t : binary_tree_nat) : list nat :=
+  match t with
+    | Leaf n => n :: nil
+    | Node t1 t2 => (flatten_ds t1) ++ (flatten_ds t2)
+  end.
+
+(* recursive definition, therefore: unfold lemmas! *)
+Lemma unfold_flatten_leaf :
+  forall n : nat,
+    flatten_ds (Leaf n) = n :: nil.
+Proof.  
+  unfold_tactic flatten_ds.
+Qed.
+
+Lemma unfold_flatten_node :
+  forall t1 t2 : binary_tree_nat,
+    flatten_ds (Node t1 t2) = (flatten_ds t1) ++ (flatten_ds t2).
+Proof.  
+  unfold_tactic flatten_ds.
+Qed.
 
 
-Theorem there_is_only_one_specification_of_mystery_function :
-  forall f g : nat -> nat,
-    specification_of_mystery_function f ->
-    specification_of_mystery_function g ->
-    forall n : nat,
-      f n = g n.
+Definition flatten_v0 (t : binary_tree_nat) : list nat :=
+  flatten_ds t.
+
+Compute unit_test_for_flatten flatten_v0.
+(*
+= true
+: bool
+*)
+
+Proposition flatten_v0_satisfies_specification_of_flatten :
+  specification_of_flatten flatten_v0.
+Proof.
+  unfold specification_of_flatten.
+  split.
+    exact unfold_flatten_leaf.
+  exact unfold_flatten_node.
+Qed.
+
+(* swap *)
+
+Definition specification_of_swap (swap : binary_tree_nat -> binary_tree_nat) :=
+  (forall n : nat,
+     swap (Leaf n) = Leaf n)
+  /\
+  (forall t1 t2 : binary_tree_nat,
+     swap (Node t1 t2) = Node (swap t2) (swap t1)).
+
+Theorem there_is_only_one_swap :
+  forall swap1 swap2 : binary_tree_nat -> binary_tree_nat,
+    specification_of_swap swap1 ->
+    specification_of_swap swap2 ->
+    forall t : binary_tree_nat,
+      swap1 t = swap2 t.
+Proof.
+  intros swap1 swap2.
+  intros [S_swap1_leaf S_swap1_node] [S_swap2_leaf S_swap2_node].
+  intro t.
+  induction t as [ n | t1 IHt1 t2 IHt2].
+    rewrite S_swap2_leaf.
+    exact (S_swap1_leaf n).
+  rewrite S_swap2_node.
+  rewrite <- IHt1.
+  rewrite <- IHt2.
+  exact (S_swap1_node t1 t2).
+Qed.
+
+
+Fixpoint swap_ds (t : binary_tree_nat) : binary_tree_nat :=
+  match t with
+    | Leaf n => Leaf n
+    | Node t1 t2 => Node (swap_ds t2) (swap_ds t1)
+  end.
+
+Lemma unfold_swap_leaf :
+  forall n : nat,
+    swap_ds (Leaf n) = (Leaf n).
+Proof.
+  unfold_tactic swap_ds.
+Qed.
+
+Lemma unfold_swap_node :
+  forall t1 t2 : binary_tree_nat,
+    swap_ds (Node t1 t2) = Node (swap_ds t2) (swap_ds t1).
+Proof.
+  unfold_tactic swap_ds.
+Qed.
+
+
+Definition swap_v0 (t : binary_tree_nat) : binary_tree_nat :=
+  swap_ds t.
+
+Proposition swap_v0_satisfies_specification_of_swap :
+  specification_of_swap swap_v0.
+Proof.
+  unfold specification_of_swap.
+  unfold swap_v0.
+  split.
+    exact unfold_swap_leaf.
+  exact unfold_swap_node.
+Qed.
+
+(* Prove that composing swap_v0 with itself yields the identity function *)
+Proposition double_swap_yields_identity_function :
+  forall t : binary_tree_nat,
+    swap_v0 (swap_v0 t) = t.
+Proof.
+  intro t.
+  unfold swap_v0.
+  induction t as [n | t1 IHt1 t2 IHt2].
+    rewrite ->2 unfold_swap_leaf.
+    reflexivity.
+  rewrite ->2 unfold_swap_node.
+  rewrite IHt1.
+  rewrite IHt2.
+  reflexivity.
+Qed.
+
+(* ********** *)
+
+(* What is the result of applying flatten_v0
+   to the result of applying swap_v0 to a tree?
+*)
+
+(* swap_v0 takes a binary_tree_nat as input, flatten_v0 outputs a binary_tree_nat *)
+Definition specification_of_the_mystery_function_1 (f : binary_tree_nat -> list nat) :=
+  forall t : binary_tree_nat,
+    f t = flatten_v0 (swap_v0 t).
+
+Proposition there_is_only_one_mystery_function_1 :
+  forall f g : binary_tree_nat -> list nat,
+    specification_of_the_mystery_function_1 f ->
+    specification_of_the_mystery_function_1 g ->
+    forall t : binary_tree_nat,
+      f t = g t.
 Proof.
   intros f g.
-  unfold specification_of_mystery_function.
-  unfold number_of_nodes_v0.
-  
-  intro S_g.
-  intro n.
-  induction n as [ | n IHn ].
-Abort.
+  unfold specification_of_the_mystery_function_1.
+  intros S_f S_g.
+  intro t.
+  induction t as [ n | t1 IHt1 t2 IHt2].
+    rewrite (S_g (Leaf n)).
+    exact (S_f (Leaf n)).
+  rewrite (S_g (Node t1 t2)).
+  exact (S_f (Node t1 t2)).
+Qed.
+
+Definition unit_test_for_mystery_function_1 (candidate : binary_tree_nat -> list nat) :=
+  (equal_list_nat (candidate bt_0) (flatten_v0 (swap_v0 bt_0)))
+  &&
+  (equal_list_nat (candidate bt_1) (flatten_v0 (swap_v0 bt_1)))
+  &&
+  (equal_list_nat (candidate bt_2) (flatten_v0 (swap_v0 bt_2)))
+  &&
+  (equal_list_nat (candidate (Node bt_1 bt_2)) (flatten_v0 (swap_v0 (Node bt_1 bt_2)))).
+
+
+(* a guess of the mystery function, NOT RECURSIVE *)
+Definition mystery_function_1 (t : binary_tree_nat) : list nat :=
+  rev (flatten_v0 t).
+
+Compute unit_test_for_mystery_function_1 mystery_function_1.
+(*
+= true
+: bool
+*)
+
+Lemma unfold_rev_bc :
+  rev nil = (nil : list nat).
+Proof.
+  unfold_tactic rev.
+Qed.
+
+Lemma unfold_rev_ic :
+  forall (x : nat) (l : list nat),
+    rev (x :: l) = rev l ++ (x :: nil).
+Proof.
+  unfold_tactic rev.
+Qed.
+
+
+
+Proposition reverse_v1_app_distr :
+  forall xs ys : list nat,
+    rev (xs ++ ys) = rev ys ++ rev xs.
+Proof.
+  intro xs.
+  induction xs as [ | x xs IHxs].
+    intro ys.
+    rewrite app_nil_l.
+    rewrite unfold_rev_bc.
+    rewrite app_nil_r.
+    reflexivity.
+  intro ys.
+  rewrite unfold_rev_ic.
+  rewrite <- app_comm_cons.
+  rewrite unfold_rev_ic.
+  rewrite IHxs.
+  rewrite app_assoc.
+  reflexivity.
+Qed.
+
+
+Proposition mystery_function_1_satisfies_specification_of_the_mystery_function_1 :
+  specification_of_the_mystery_function_1 mystery_function_1.
+Proof.
+  unfold specification_of_the_mystery_function_1.
+  unfold mystery_function_1.
+  unfold flatten_v0.
+  unfold swap_v0.
+  intro t.
+  induction t as [ n | t1 IHt1 t2 IHt2].
+    rewrite unfold_swap_leaf.
+    rewrite unfold_flatten_leaf.
+    rewrite unfold_rev_ic.
+    rewrite unfold_rev_bc.
+    rewrite app_nil_l.
+    reflexivity.
+  rewrite unfold_swap_node.
+  rewrite (unfold_flatten_node (swap_ds t2) (swap_ds t1)).
+  rewrite <- IHt1.
+  rewrite <- IHt2.
+  rewrite unfold_flatten_node.
+  rewrite reverse_v1_app_distr.
+  reflexivity.
+Qed.
+
+
+(* ********** *)
