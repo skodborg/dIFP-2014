@@ -992,7 +992,7 @@ Definition unit_test_for_mystery_function (candidate : binary_tree_nat -> list n
 
 (* a guess of the mystery function, NOT RECURSIVE *)
 Definition mystery_function (t : binary_tree_nat) : list nat :=
-  rev (flatten_v0 t).
+  reverse_v1 nat (flatten_v0 t).
 
 Compute unit_test_for_mystery_function mystery_function.
 (*
@@ -1000,39 +1000,70 @@ Compute unit_test_for_mystery_function mystery_function.
 : bool
 *)
 
-Lemma unfold_rev_bc :
-  rev nil = (nil : list nat).
+Proposition about_append_and_plusplus :
+  forall (T : Type) (append : list T -> list T -> list T),
+    specification_of_append T append ->
+    forall xs ys : list T,
+      append xs ys = xs ++ ys.
 Proof.
-  unfold_tactic rev.
-Qed.
-
-Lemma unfold_rev_ic :
-  forall (x : nat) (l : list nat),
-    rev (x :: l) = rev l ++ (x :: nil).
-Proof.
-  unfold_tactic rev.
-Qed.
-
-
-
-Proposition reverse_v1_app_distr :
-  forall xs ys : list nat,
-    rev (xs ++ ys) = rev ys ++ rev xs.
-Proof.
+  intro T.
+  intro append.
+  intro S_append.
+  unfold specification_of_append in S_append.
+  destruct S_append as [H_append_bc H_append_ic].
   intro xs.
-  induction xs as [ | x xs IHxs].
+  induction xs as [ | x' xs' IHxs'].
     intro ys.
     rewrite app_nil_l.
-    rewrite unfold_rev_bc.
+    rewrite H_append_bc.
+    reflexivity.
+  intro ys.
+  rewrite H_append_ic.
+  rewrite IHxs'.
+  rewrite app_comm_cons.
+  reflexivity.
+Qed.
+
+
+Proposition about_reverse_preserving_distr_sort_of :
+  forall (T : Type) (reverse : list T -> list T),
+    specification_of_reverse T reverse ->
+    forall xs ys : list T,
+      reverse (xs ++ ys) = reverse ys ++ reverse xs.
+Proof.
+  intro T.
+  intro reverse.
+  intro S_reverse.
+  unfold specification_of_reverse in S_reverse.
+  destruct (S_reverse (append_v1 T)) as [H_reverse_bc H_reverse_ic].
+  apply append_v1_fits_the_specification_of_append.
+  clear S_reverse.
+  intro xs.
+  induction xs as [ | x' xs' IHxs'].
+    intro ys.
+    rewrite app_nil_l.
+    rewrite H_reverse_bc.
     rewrite app_nil_r.
     reflexivity.
   intro ys.
-  rewrite unfold_rev_ic.
-  rewrite <- app_comm_cons.
-  rewrite unfold_rev_ic.
-  rewrite IHxs.
+  rewrite <- (app_comm_cons xs' ys x').
+  rewrite (H_reverse_ic x' xs').
+  rewrite (about_append_and_plusplus T
+                                     (append_v1 T)
+                                     (append_v1_fits_the_specification_of_append T)
+                                     (reverse xs')
+                                     (x' :: nil)
+          ).
   rewrite app_assoc.
-  reflexivity.
+  rewrite <- IHxs'.
+  rewrite H_reverse_ic.
+  rewrite (about_append_and_plusplus T
+                                     (append_v1 T)
+                                     (append_v1_fits_the_specification_of_append T)
+                                     (reverse (xs' ++ ys))
+                                     (x' :: nil)
+          ).
+reflexivity.
 Qed.
 
 
@@ -1047,18 +1078,78 @@ Proof.
   induction t as [ n | t1 IHt1 t2 IHt2].
     rewrite unfold_swap_leaf.
     rewrite unfold_flatten_leaf.
-    rewrite unfold_rev_ic.
-    rewrite unfold_rev_bc.
-    rewrite app_nil_l.
+    unfold reverse_v1.
+    rewrite unfold_reverse_ds_induction_case.
+    rewrite unfold_reverse_ds_base_case.
+    rewrite unfold_append_v1_base_case.
     reflexivity.
   rewrite unfold_swap_node.
   rewrite (unfold_flatten_node (swap_ds t2) (swap_ds t1)).
   rewrite <- IHt1.
   rewrite <- IHt2.
   rewrite unfold_flatten_node.
-  rewrite reverse_v1_app_distr.
-  reflexivity.
+  exact (about_reverse_preserving_distr_sort_of nat
+                                                (reverse_v1 nat)
+                                                (reverse_v1_fits_the_specification_of_reverse nat)
+                                                (flatten_ds t1)
+                                                (flatten_ds t2)
+        ).
 Qed.
+
+(* borrowed from the webboard, proved for the sake of exercise completeness *)
+
+Theorem about_flattening_a_swapped_binary_tree :
+  forall flatten : binary_tree_nat -> list nat,
+    specification_of_flatten flatten ->
+    forall reverse : list nat -> list nat,
+      specification_of_reverse nat reverse ->
+      forall swap : binary_tree_nat -> binary_tree_nat,
+        specification_of_swap swap ->
+        forall t : binary_tree_nat,
+          flatten (swap t) = reverse (flatten t).
+Proof.
+  intro flatten_v0.
+  intro S_flatten_v0.
+  intro reverse_v1.
+  intro S_reverse_v1.
+  intro swap_v0.
+  intro S_swap_v0.
+  intro t.
+  induction t as [ n | t1 IHt1 t2 IHt2].
+    unfold specification_of_swap in S_swap_v0.
+    destruct S_swap_v0 as [H_swap_bc H_swap_ic].
+    rewrite H_swap_bc.
+    unfold specification_of_flatten in S_flatten_v0.
+    destruct S_flatten_v0 as [H_flatten_bc H_flatten_ic].
+    rewrite H_flatten_bc.
+    unfold specification_of_reverse in S_reverse_v1.
+    destruct (S_reverse_v1 (append_v1 nat)) as [H_reverse_bc H_reverse_ic].
+    apply (append_v1_fits_the_specification_of_append nat).
+    rewrite H_reverse_ic.
+    rewrite H_reverse_bc.
+    rewrite unfold_append_v1_base_case.
+    reflexivity.
+  unfold specification_of_swap in S_swap_v0.
+  destruct S_swap_v0 as [H_swap_bc H_swap_ic].
+  unfold specification_of_flatten in S_flatten_v0.
+  destruct S_flatten_v0 as [H_flatten_bc H_flatten_ic].
+  unfold specification_of_reverse in S_reverse_v1.
+  destruct (S_reverse_v1 (append_v1 nat)) as [H_reverse_bc H_reverse_ic].
+  apply (append_v1_fits_the_specification_of_append nat).
+  rewrite H_flatten_ic.
+  rewrite H_swap_ic.
+  rewrite H_flatten_ic.
+  rewrite IHt2.
+  rewrite IHt1.
+  symmetry.
+  exact (about_reverse_preserving_distr_sort_of nat
+                                                reverse_v1
+                                                S_reverse_v1
+                                                (flatten_v0 t1)
+                                                (flatten_v0 t2)
+        ).
+Qed.
+
 
 
 (* ********** *)
