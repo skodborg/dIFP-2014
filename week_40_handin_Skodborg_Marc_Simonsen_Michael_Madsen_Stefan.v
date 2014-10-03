@@ -89,10 +89,9 @@ Proof.
   intros [Hf_leaf Hf_node] [Hg_leaf Hg_node].
   intro t.
   induction t as [n | t1 IHt1 t2 IHt2].
-
-  rewrite -> Hf_leaf.
-  rewrite -> Hg_leaf.
-  reflexivity.
+    rewrite -> Hf_leaf.
+    rewrite -> Hg_leaf.
+    reflexivity.
 
   rewrite -> Hf_node.
   rewrite -> Hg_node.
@@ -142,26 +141,18 @@ Lemma about_number_of_leaves_acc' :
 Proof.
   intro t.
   induction t as [n | t1 IHt1 t2 IHt2].
+    intro a.
+    rewrite -> unfold_number_of_leaves_acc'_Leaf.
+    rewrite -> unfold_number_of_leaves_acc'_Leaf.
+    rewrite -> plus_0_r.
+    reflexivity.
 
-  (* Base case: *)
   intro a.
-  (* left-hand side: *)
-  rewrite -> unfold_number_of_leaves_acc'_Leaf.
-  (* right-hand side: *)
-  rewrite -> unfold_number_of_leaves_acc'_Leaf.
-  rewrite -> plus_0_r.
-  reflexivity.
-
-  (* Induction case: *)
-  intro a.
-  (* left-hand side: *)
   rewrite -> unfold_number_of_leaves_acc'_Node.
   rewrite -> IHt1.
   rewrite -> IHt2.
-  (* right-hand side: *)
   rewrite -> unfold_number_of_leaves_acc'_Node.
   rewrite -> (IHt2 (number_of_leaves_acc' t1 0)).
-  (* postlude: *)
   apply plus_assoc.
 Qed.
 
@@ -306,10 +297,9 @@ Proof.
   intros [Hf_leaf Hf_node] [Hg_leaf Hg_node].
   intro t.
   induction t as [n | t1 IHt1 t2 IHt2].
-
-  rewrite -> Hf_leaf.
-  rewrite -> Hg_leaf.
-  reflexivity.
+    rewrite -> Hf_leaf.
+    rewrite -> Hg_leaf.
+    reflexivity.
 
   rewrite -> Hf_node.
   rewrite -> Hg_node.
@@ -412,24 +402,29 @@ Proof.
       rewrite unfold_product_of_leaves'_ds_Leaf.
       rewrite mult_0_l.
       reflexivity.
+
     induction t2 as [ n' | t1' IHt1' t2' IHt2' ].
       induction n' as [ | n' IHn' ].
         rewrite ->2 unfold_product_of_leaves'_ds_Leaf.
         rewrite mult_0_r.
         reflexivity.
+
       reflexivity.
+
     reflexivity.
+
   intro t0.
   rewrite unfold_product_of_leaves'_ds_Node.
   case t0 as [ | n'] eqn:Ht0.
-  induction n as [ | n IHn].
-   rewrite unfold_product_of_leaves'_ds_Leaf.
-   rewrite mult_0_r.
+    induction n as [ | n IHn].
+      rewrite unfold_product_of_leaves'_ds_Leaf.
+      rewrite mult_0_r.
+      reflexivity.
+
    reflexivity.
- reflexivity.
+
  reflexivity.
 Qed.
-
 
 Proposition product_of_leaves_v0_equals_product_of_leaves_v1 :
   forall t : binary_tree_nat,
@@ -470,7 +465,6 @@ Proof.
   intros [S_f_leaf S_f_node] [S_g_leaf S_g_node].
   intro t.
   induction t as [n | t1 IHt1 t2 IHt2].
-
     rewrite S_g_leaf.
     exact (S_f_leaf n).
 
@@ -515,6 +509,7 @@ Proof.
   split.
     unfold number_of_nodes_v0.
     exact unfold_number_of_nodes_ds_leaf.
+
   unfold number_of_nodes_v0.
   exact unfold_number_of_nodes_ds_node.
 Qed.
@@ -554,6 +549,7 @@ Proof.
     rewrite unfold_number_of_nodes_ds_leaf.
     rewrite unfold_number_of_leaves_acc'_Leaf.
     ring.
+
   rewrite unfold_number_of_nodes_ds_node.
   rewrite (plus_n_Sm (number_of_nodes_ds t1) (number_of_nodes_ds t2)).
   rewrite <- plus_1_l.
@@ -572,12 +568,11 @@ Proof.
   unfold number_of_nodes_v0.
   intro n.
   induction n as [ | n' [t IHn']].
-  exists (Leaf 1).
-  rewrite -> unfold_number_of_nodes_ds_leaf.
-  reflexivity.
+    exists (Leaf 1).
+    rewrite -> unfold_number_of_nodes_ds_leaf.
+    reflexivity.
   
-  exists (Node t
-               (Leaf 42)).
+  exists (Node t (Leaf 42)).
   rewrite -> unfold_number_of_nodes_ds_node.
   rewrite -> unfold_number_of_nodes_ds_leaf.
   rewrite -> IHn'.
@@ -596,8 +591,7 @@ Proof.
   unfold specification_of_mystery_function.
   intros Spec_F Spec_G.
   intro n.
-  destruct (there_exist_a_binary_tree_for_every_n n)
-    as [t Ht].
+  destruct (there_exist_a_binary_tree_for_every_n n) as [t Ht].
   rewrite -> Ht.
   rewrite -> Spec_F.
   rewrite -> Spec_G.
@@ -652,9 +646,8 @@ Proof.
   intros [H1_leaf H1_node] [H2_leaf H2_node].
   intro t.
   induction t as [n | t1 IHt1 t2 IHt2].
-
-  rewrite -> H2_leaf.
-  apply H1_leaf.
+    rewrite -> H2_leaf.
+    apply H1_leaf.
 
   rewrite -> H1_node.
   rewrite -> H2_node.
@@ -704,6 +697,7 @@ Proof.
   unfold specification_of_flatten.
   split.
     exact unfold_flatten_leaf.
+
   exact unfold_flatten_node.
 Qed.
 
@@ -729,6 +723,7 @@ Proof.
   induction t as [ n | t1 IHt1 t2 IHt2].
     rewrite S_swap2_leaf.
     exact (S_swap1_leaf n).
+
   rewrite S_swap2_node.
   rewrite <- IHt1.
   rewrite <- IHt2.
@@ -767,6 +762,7 @@ Proof.
   unfold swap_v0.
   split.
     exact unfold_swap_leaf.
+
   exact unfold_swap_node.
 Qed.
 
@@ -780,6 +776,7 @@ Proof.
   induction t as [n | t1 IHt1 t2 IHt2].
     rewrite ->2 unfold_swap_leaf.
     reflexivity.
+
   rewrite ->2 unfold_swap_node.
   rewrite IHt1.
   rewrite IHt2.
@@ -811,6 +808,7 @@ Proof.
   induction t as [ n | t1 IHt1 t2 IHt2].
     rewrite (S_g (Leaf n)).
     exact (S_f (Leaf n)).
+
   rewrite (S_g (Node t1 t2)).
   exact (S_f (Node t1 t2)).
 Qed.
@@ -861,6 +859,7 @@ Proof.
     rewrite unfold_rev_bc.
     rewrite app_nil_r.
     reflexivity.
+
   intro ys.
   rewrite unfold_rev_ic.
   rewrite <- app_comm_cons.
@@ -886,6 +885,7 @@ Proof.
     rewrite unfold_rev_bc.
     rewrite app_nil_l.
     reflexivity.
+
   rewrite unfold_swap_node.
   rewrite (unfold_flatten_node (swap_ds t2) (swap_ds t1)).
   rewrite <- IHt1.
