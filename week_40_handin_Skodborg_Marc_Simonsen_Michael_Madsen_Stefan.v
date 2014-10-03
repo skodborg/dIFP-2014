@@ -564,6 +564,35 @@ Proof.
   ring.
 Qed.
 
+Lemma function_pluss_equals_function_plus_function :
+  forall f : nat -> nat,
+  forall a b : nat,
+    f(a+b) = f(a) + f(b).
+Proof.
+Admitted.
+
+Theorem there_is_only_one_mystery_function :
+  forall f g :  nat -> nat,
+    specification_of_mystery_function f ->
+    specification_of_mystery_function g ->
+    forall t : binary_tree_nat,
+      f (number_of_nodes_v0 t) = g (number_of_nodes_v0 t) .
+Proof.
+  intros f g .
+  unfold specification_of_mystery_function.
+  unfold number_of_nodes_v0.
+  unfold number_of_leaves_v1'.
+  induction t as [ n | ].
+    rewrite H.
+    rewrite H0.
+    rewrite unfold_number_of_leaves_acc'_Leaf.
+    ring.
+
+    rewrite unfold_number_of_nodes_ds_node.
+    
+    
+    
+
 (* Flatten  *)
 
 (* Sample of binary trees of natural numbers: *)
