@@ -564,34 +564,45 @@ Proof.
   ring.
 Qed.
 
-Lemma function_pluss_equals_function_plus_function :
-  forall f : nat -> nat,
-  forall a b : nat,
-    f(a+b) = f(a) + f(b).
+Theorem there_exist_a_binary_tree_for_every_n :
+  forall n : nat,
+    exists t : binary_tree_nat,
+      n = number_of_nodes_v0 t.
 Proof.
-Admitted.
+  unfold number_of_nodes_v0.
+  intro n.
+  induction n as [ | n' [t IHn']].
+  exists (Leaf 1).
+  rewrite -> unfold_number_of_nodes_ds_leaf.
+  reflexivity.
+  
+  exists (Node t
+               (Leaf 42)).
+  rewrite -> unfold_number_of_nodes_ds_node.
+  rewrite -> unfold_number_of_nodes_ds_leaf.
+  rewrite -> IHn'.
+  rewrite -> plus_0_r.
+  reflexivity.
+Qed.
 
-Theorem there_is_only_one_mystery_function :
+ Theorem there_is_only_one_mystery_function :
   forall f g :  nat -> nat,
     specification_of_mystery_function f ->
     specification_of_mystery_function g ->
-    forall t : binary_tree_nat,
-      f (number_of_nodes_v0 t) = g (number_of_nodes_v0 t) .
+    forall n : nat,
+      f n = g n.
 Proof.
-  intros f g .
+  intros f g.
   unfold specification_of_mystery_function.
-  unfold number_of_nodes_v0.
-  unfold number_of_leaves_v1'.
-  induction t as [ n | ].
-    rewrite H.
-    rewrite H0.
-    rewrite unfold_number_of_leaves_acc'_Leaf.
-    ring.
-
-    rewrite unfold_number_of_nodes_ds_node.
-    
-    
-    
+  intros Spec_F Spec_G.
+  intro n.
+  destruct (there_exist_a_binary_tree_for_every_n n)
+    as [t Ht].
+  rewrite -> Ht.
+  rewrite -> Spec_F.
+  rewrite -> Spec_G.
+  reflexivity.
+Qed.
 
 (* Flatten  *)
 
