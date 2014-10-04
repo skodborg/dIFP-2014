@@ -395,6 +395,31 @@ Proof.
     exact unfold_product_of_leaves'_ds_Leaf.
 
   intro t1.
+  intro t2.
+  rewrite unfold_product_of_leaves'_ds_Node.
+  case t1 as [ | n'] eqn:Ht1.
+    induction n as [ | n' IHn'].
+    rewrite unfold_product_of_leaves'_ds_Leaf.
+    rewrite mult_0_l.
+    reflexivity.
+    case t2 as [ | n''] eqn:Ht2.
+      induction n as [ | n'' IHn''].
+      rewrite ->2 unfold_product_of_leaves'_ds_Leaf.
+      rewrite mult_0_r.
+      reflexivity.
+    reflexivity.
+  reflexivity.
+  case t2 as [ | n'' IHn''] eqn:Ht2.
+    induction n as [ | n'' IHn''].
+      rewrite unfold_product_of_leaves'_ds_Leaf.
+      rewrite mult_0_r.
+      reflexivity.
+    reflexivity.
+  reflexivity.
+Qed.
+
+(*
+intro t1.
   induction t1 as [ n | t1 IHt1 t2 IHt2 ].
     intro t2.
     rewrite unfold_product_of_leaves'_ds_Node.
@@ -425,6 +450,7 @@ Proof.
 
  reflexivity.
 Qed.
+*)
 
 Proposition product_of_leaves_v0_equals_product_of_leaves_v1 :
   forall t : binary_tree_nat,
