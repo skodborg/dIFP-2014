@@ -1,3 +1,31 @@
+
+
+
+(*
+
+Hi Kent,
+
+In your feedback, you wrote:
+
+  "You still need to explicitly provide all the arguments to 'apply' and 'rewrite.'"
+
+Once again, we have gone through all uses of 'apply' and 'rewrite',
+finding no particular cases of having not provided all arguments.
+Although we did find some cases where we used unfold lemmas on definitions
+not yet unfolded to their respective fixpoint, for which the unfold lemmas are defined over.
+
+Was it possible that those were the error to which you were referring?
+If so, it should be good now; if not, we would very much like a hint as to
+where exactly we are wrong next time, because the above is very vague
+and re-handing this particular hand-in in repeatedly is no fun for any of us.
+
+Yours truly
+group k
+
+*)
+
+
+
 Require Import unfold_tactic.
 
 Require Import Arith Bool List.
@@ -188,9 +216,13 @@ Proof.
   intro T.
   unfold specification_of_length.
   split.
+    unfold length_v1.
     apply (unfold_length_ds_base_case T).
 
-  apply (unfold_length_ds_induction_case T).
+  intro x.
+  intro xs.
+  unfold length_v1.
+  apply (unfold_length_ds_induction_case T x xs).
 Qed.
 
 (* ***** *)
@@ -275,6 +307,7 @@ Proof.
   unfold specification_of_length.
   split.
     rewrite <- (plus_0_r (length_v2 T nil)).
+    unfold length_v2.
     apply (unfold_length_acc_base_case T 0).
 
   intros x xs.
@@ -676,6 +709,7 @@ Proof.
   intro append.
   intro S_append.
   split.
+    unfold reverse_v1.
     apply (unfold_reverse_ds_base_case T).
 
   unfold reverse_v1.
@@ -1045,6 +1079,7 @@ Proof.
   unfold specification_of_map.
   split.
     intros f.
+    unfold map_v1.
     apply (unfold_map_ds_base_case T1 T2 f).
 
   unfold map_v1.
